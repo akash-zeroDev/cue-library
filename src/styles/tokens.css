@@ -1,0 +1,77 @@
+/* ============================================================
+   CUE — design tokens v1
+   Black + electric blue premium theme
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --cue-bg:            #0A0A0A;
+  --cue-surface-1:     #111111;
+  --cue-surface-2:     #171717;
+  --cue-surface-3:     #1E1E1E;
+
+  /* Borders */
+  --cue-border:        rgba(255, 255, 255, 0.08);
+  --cue-border-strong: rgba(255, 255, 255, 0.14);
+  --cue-border-inset:  rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --cue-text-1:        #EDEDED;
+  --cue-text-2:        rgba(255, 255, 255, 0.65);
+  --cue-text-3:        rgba(255, 255, 255, 0.45);
+  --cue-text-strong:   #FFFFFF;
+
+  /* Accent — electric blue */
+  --cue-accent:        #3B82F6;
+  --cue-accent-hover:  #2563EB;
+  --cue-accent-bg:     #0B1F3D;
+  --cue-accent-fg:     #93C5FD;
+  --cue-accent-ring:   rgba(59, 130, 246, 0.4);
+
+  /* CTA (white pill) */
+  --cue-cta-bg:        #F4F4F1;
+  --cue-cta-fg:        #0A0A0A;
+  --cue-cta-bg-hover:  #FFFFFF;
+
+  /* Badges */
+  --cue-badge-bg:      #141414;
+  --cue-badge-border:  #262626;
+  --cue-badge-fg:      #B8B8B8;
+
+  /* Radii */
+  --cue-radius-sm:     6px;
+  --cue-radius-md:     10px;
+  --cue-radius-lg:     14px;
+  --cue-radius-xl:     20px;
+  --cue-radius-pill:   999px;
+
+  /* Grid */
+  --cue-grid-gap-x:    20px;
+  --cue-grid-gap-y:    40px;
+  --cue-max-w:         1320px;
+  --cue-side-pad:      40px;
+
+  /* Typography */
+  --cue-font-sans:     'Inter', 'Inter Display', system-ui, -apple-system, sans-serif;
+  --cue-font-serif:    'Instrument Serif', 'Fraunces', Georgia, serif;
+  --cue-font-mono:     'JetBrains Mono', ui-monospace, monospace;
+
+  --cue-fs-hero:       76px;
+  --cue-fs-h2:         32px;
+  --cue-fs-body:       15px;
+  --cue-fs-nav:        13px;
+  --cue-fs-card-title: 14px;
+  --cue-fs-card-cat:   12px;
+  --cue-fs-badge:      10.5px;
+
+  /* Motion */
+  --cue-ease:          cubic-bezier(0.2, 0.7, 0.2, 1);
+  --cue-dur-fast:      160ms;
+  --cue-dur-base:      240ms;
+  --cue-dur-slow:      400ms;
+
+  /* Shadows (sparingly) */
+  --cue-shadow-cta:    0 8px 24px rgba(59, 130, 246, 0.25);
+  --cue-shadow-modal:  0 24px 80px rgba(0, 0, 0, 0.6);
+  --cue-shadow-toast:  0 12px 32px rgba(0, 0, 0, 0.5);
+}

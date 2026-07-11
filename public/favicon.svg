@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#0A0A0A"/>
+  <text x="16" y="21" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="500" letter-spacing="-0.04em" fill="#FFFFFF">cue</text>
+  <circle cx="25" cy="20" r="1.6" fill="#3B82F6"/>
+</svg>

@@ -1,0 +1,21 @@
+{
+  "name": "cue-library",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Copy-paste prompts for landing pages. Black + electric blue premium theme.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.10"
+  }
+}
