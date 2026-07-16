@@ -1,0 +1,32 @@
+/* src/styles/overhaul.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { 
+  background: #14110E; 
+  overflow-x: hidden; 
+  -webkit-font-smoothing: antialiased; 
+  -moz-osx-font-smoothing: grayscale; 
+}
+a { color: #3B82F6; text-decoration: none; }
+a:hover { color: #2563EB; }
+input::placeholder { color: rgba(232,225,214,0.34); }
+select option { background: #171717; color: #EDEDED; }
+::selection { background: rgba(59,130,246,0.30); }
+
+@keyframes navIn { from { opacity: 0; transform: translate3d(-50%,-42px,0); } to { opacity: 1; transform: translate3d(-50%,0,0); } }
+@keyframes heroRise { from { transform: translateY(118%) rotate(3deg); opacity: 0; } to { transform: translateY(0) rotate(0); opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeGrid { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sheen { 0% { transform: translateX(-140%) skewX(-14deg); } 100% { transform: translateX(320%) skewX(-14deg); } }
+@keyframes blink { 0%, 48% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes barpulse { 0%, 100% { opacity: 0.45; transform: scaleX(0.72); } 50% { opacity: 1; transform: scaleX(1); } }
+
+.hover-color-t1:hover { color: var(--t1,#EDEDED) !important; }
+.hover-color-tstrong:hover { color: var(--tstrong,#fff) !important; }
+.hover-auth-close:hover { color: var(--tstrong,#fff) !important; background: rgba(255,255,255,0.1) !important; }
+.hover-search-clear:hover { color: var(--tstrong,#fff) !important; background: rgba(255,255,255,0.14) !important; }
+.hover-btn-signup:hover { transform: translateY(-1px) !important; box-shadow: 0 10px 24px -10px rgba(0,0,0,0.7) !important; }
+.hover-btn-auth:hover { transform: translateY(-1px) !important; box-shadow: 0 14px 32px -12px rgba(0,0,0,0.7) !important; }
+.hover-btn-get:hover { transform: translateY(-2px) !important; box-shadow: 0 16px 38px -12px rgba(0,0,0,0.7) !important; }
+.focus-border-acc:focus { border-color: var(--acc,#3B82F6) !important; }
+.hover-border-strong-16:hover { border-color: var(--border-strong,rgba(255,255,255,0.16)) !important; }
+.hover-border-strong-14:hover { border-color: var(--border-strong,rgba(255,255,255,0.14)) !important; }

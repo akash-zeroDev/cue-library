@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { copyToClipboard } from '../hooks/useClipboard.js'
 import { backend, backendMode } from '../lib/backend.js'
+import { useUser } from '@clerk/clerk-react'
 
 const SECTIONS = ['Hero', 'Landing', 'Pricing', 'CTA', 'Portfolio', 'Agency']
 const TIERS = [{ v: 'free', l: 'Free (Copy)' }, { v: 'premium', l: 'Premium (Locked)' }]
@@ -56,67 +57,9 @@ function toJsObjectLiteral(p) {
 }`
 }
 
-function AdminLogin({ showToast, onSuccess }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-
-  const submit = async (e) => {
-    e.preventDefault()
-    setBusy(true); setError('')
-    try {
-      await backend.signIn(email, password)
-      showToast('Signed in')
-      onSuccess && onSuccess()
-    } catch (err) {
-      setError(err.message || 'Sign-in failed')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="admin admin-login">
-      <a className="admin-back" href="#/">← Back to library</a>
-      <h1 className="admin-title">Admin sign in</h1>
-      <p className="admin-sub">This library is backed by Supabase. Sign in with your admin account to add prompts.</p>
-      <form className="admin-form" onSubmit={submit} style={{ maxWidth: 420 }}>
-        <div className="form-field">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            className="form-input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-          />
-        </div>
-        <div className="form-field">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </div>
-        {error && <div className="form-error">{error}</div>}
-        <div className="form-actions">
-          <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? 'Signing in…' : 'Sign in'}
-          </button>
-        </div>
-      </form>
-    </div>
-  )
-}
-
 export default function Admin() {
-  const { allPrompts, drafts, addDraft, removeDraft, clearDrafts, openItem, showToast, user } = useApp()
+  const { allPrompts, drafts, addDraft, removeDraft, clearDrafts, openItem, showToast } = useApp()
+  const { isLoaded, isSignedIn, user } = useUser()
   const fileRef = useRef(null)
   const videoRef = useRef(null)
 
@@ -139,9 +82,18 @@ export default function Admin() {
   const [touched, setTouched] = useState({})
   const markTouched = (k) => setTouched((t) => ({ ...t, [k]: true }))
 
-  const needsAuth = backend.requiresAuth && !user
-  if (needsAuth) {
-    return <AdminLogin showToast={showToast} />
+  const isAdmin = isSignedIn && ['akashkumar7653099@gmail.com', 'aloksivastava1025@gmail.com'].includes(user?.primaryEmailAddress?.emailAddress);
+
+  if (!isLoaded) return <div style={{ color: '#fff', padding: '100px', textAlign: 'center' }}>Loading...</div>
+  
+  if (!isAdmin) {
+    return (
+      <div className="admin" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '120px' }}>
+        <a className="admin-back" href="#/" style={{ alignSelf: 'center', marginBottom: '24px' }}>← Back to library</a>
+        <h1 className="admin-title">Access Denied</h1>
+        <p className="admin-sub">You do not have permission to view this page. Only authorized administrators can access the dashboard.</p>
+      </div>
+    )
   }
 
   const missing = []
@@ -149,8 +101,12 @@ export default function Admin() {
   if (!form.category.trim()) missing.push('Category')
   if (!form.brand.trim()) missing.push('Brand')
   if (!form.prompt.trim()) missing.push('Prompt')
+  if (form.tier === 'premium' && (!form.price || form.price <= 0)) missing.push('Price')
   const canSubmit = missing.length === 0 && !saving
-  const errFor = (k) => touched[k] && !form[k]?.trim()
+  const errFor = (k) => {
+    if (k === 'price' && form.tier === 'premium') return touched.price && (!form.price || form.price <= 0)
+    return touched[k] && typeof form[k] === 'string' && !form[k].trim()
+  }
 
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const toggleStack = (tool) => {
@@ -207,8 +163,7 @@ export default function Admin() {
   }
   const clearVideo = () => set({ hoverSrc: '' })
 
-  const onSubmit = async (e) => {
-    e.preventDefault()
+  const submitWithStatus = async (status) => {
     if (!canSubmit) {
       // reveal which fields are still empty
       setTouched({ title: true, category: true, brand: true, prompt: true })
@@ -217,14 +172,15 @@ export default function Admin() {
     }
     setSaving(true)
     try {
-      await addDraft({ ...form })
-      showToast(`Added "${form.title}"`)
+      await addDraft({ ...form, status })
+      showToast(`${status === 'published' ? 'Published' : 'Saved draft'} "${form.title}"`)
       setForm({
         id: nextId([...allPrompts, form]),
         title: '',
         category: '',
         section: form.section,
         tier: form.tier,
+        price: form.tier === 'premium' ? form.price : 0,
         rail: form.rail,
         brand: '',
         variant: form.variant,
@@ -233,6 +189,7 @@ export default function Admin() {
         hoverSrc: '',
         prompt: '',
       })
+      setTouched({})
     } catch (err) {
       showToast('Save failed: ' + (err.message || 'unknown'))
     } finally {
@@ -258,6 +215,20 @@ export default function Admin() {
     showToast(`Exported ${drafts.length} draft${drafts.length === 1 ? '' : 's'}`)
   }
 
+  const onEdit = async (p) => {
+    try {
+      let promptContent = p.prompt
+      if (!promptContent) {
+        const content = await backend.getPromptContent(p.id)
+        promptContent = content || ''
+      }
+      setForm({ ...p, prompt: promptContent })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (err) {
+      showToast('Failed to load prompt content for editing')
+    }
+  }
+
   const onRemove = async (id) => {
     try { await removeDraft(id) } catch (err) { showToast('Delete failed: ' + err.message) }
   }
@@ -268,241 +239,165 @@ export default function Admin() {
   const isDataUrl = form.thumbSrc?.startsWith('data:')
   const videoIsData = form.hoverSrc?.startsWith('data:')
 
+  const inputStyle = { width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', padding: '16px', borderRadius: '12px', color: '#fff', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', fontFamily: 'inherit' };
+  const labelStyle = { color: '#fff', fontSize: '12px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', opacity: 0.7 };
+  const fieldStyle = { display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' };
+  const rowStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', width: '100%' };
+  const btnStyle = { padding: '14px 24px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.2s' };
+  const btnPrimaryStyle = { ...btnStyle, background: '#3B82F6', borderColor: '#3B82F6' };
+  
   return (
-    <div className="admin">
-      <header className="admin-head">
+    <div style={{ padding: '90px clamp(20px, 4vw, 56px) 120px', maxWidth: '1200px', margin: '0 auto', fontFamily: "'Hanken Grotesk', system-ui, sans-serif", color: '#fff' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '48px' }}>
         <div>
-          <a className="admin-back" href="#/">← Back to library</a>
-          <h1 className="admin-title">Admin — Cue library</h1>
-          <p className="admin-sub">
+          <a href="#/" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, marginBottom: '24px' }}>← Back to library</a>
+          <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, letterSpacing: '-0.04em', margin: '0 0 12px 0' }}>Admin Dashboard</h1>
+          <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0, fontSize: '15px' }}>
             {backendMode === 'supabase'
-              ? <>Backed by Supabase — new prompts publish site-wide instantly. <span className="admin-user">Signed in as {user?.email}. <button className="admin-signout" onClick={() => backend.signOut()}>Sign out</button></span></>
-              : <>Local mode (IndexedDB, this browser only). Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in <code>.env</code> to publish site-wide.</>}
+              ? <>Backed by Supabase — new prompts publish site-wide instantly. <span style={{ color: '#fff' }}>Signed in as {user?.primaryEmailAddress?.emailAddress}.</span></>
+              : <>Local mode (IndexedDB, this browser only). Set <code>VITE_SUPABASE_URL</code> in <code>.env</code> to publish site-wide.</>}
           </p>
         </div>
-        <div className="admin-stats">
-          <div className="stat"><div className="stat-n">{seedCount}</div><div className="stat-l">Seed</div></div>
-          <div className="stat"><div className="stat-n">{draftsCount}</div><div className="stat-l">{backendMode === 'supabase' ? 'Live' : 'Drafts'}</div></div>
-          <div className="stat"><div className="stat-n">{totalCount}</div><div className="stat-l">Total</div></div>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '16px 24px', textAlign: 'center' }}><div style={{ fontSize: '32px', fontWeight: 800 }}>{seedCount}</div><div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seed</div></div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '16px 24px', textAlign: 'center' }}><div style={{ fontSize: '32px', fontWeight: 800 }}>{draftsCount}</div><div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{backendMode === 'supabase' ? 'Live' : 'Drafts'}</div></div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '16px 24px', textAlign: 'center' }}><div style={{ fontSize: '32px', fontWeight: 800 }}>{totalCount}</div><div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div></div>
         </div>
       </header>
 
-      <form className="admin-form" onSubmit={onSubmit}>
-        <div className="form-row">
-          <div className="form-field">
-            <label className="form-label">Title <span className="req">*</span></label>
-            <input
-              className={`form-input${errFor('title') ? ' form-input-error' : ''}`}
-              value={form.title}
-              onChange={(e) => set({ title: e.target.value })}
-              onBlur={() => markTouched('title')}
-              placeholder="Aurora hero"
-            />
+      <form onSubmit={(e) => e.preventDefault()} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '24px', padding: 'clamp(24px, 4vw, 48px)', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        
+        <div style={rowStyle}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Title <span style={{color: '#ef4444'}}>*</span></label>
+            <input style={{...inputStyle, borderColor: errFor('title') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.title} onChange={(e) => set({ title: e.target.value })} onBlur={() => markTouched('title')} placeholder="Aurora hero" />
           </div>
-          <div className="form-field">
-            <label className="form-label">Category (subtitle) <span className="req">*</span></label>
-            <input
-              className={`form-input${errFor('category') ? ' form-input-error' : ''}`}
-              value={form.category}
-              onChange={(e) => set({ category: e.target.value })}
-              onBlur={() => markTouched('category')}
-              placeholder="Hero section"
-            />
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Category / Tag <span style={{color: '#ef4444'}}>*</span></label>
+            <input style={{...inputStyle, borderColor: errFor('category') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.category} onChange={(e) => set({ category: e.target.value })} onBlur={() => markTouched('category')} placeholder="e.g. Hero, Landing, Web3" />
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-field">
-            <label className="form-label">Section</label>
-            <select className="form-input" value={form.section} onChange={(e) => set({ section: e.target.value })}>
+        <div style={rowStyle}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Section Layout</label>
+            <select style={inputStyle} value={form.section} onChange={(e) => set({ section: e.target.value })}>
               {SECTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-          <div className="form-field">
-            <label className="form-label">Tier</label>
-            <select className="form-input" value={form.tier} onChange={(e) => set({ tier: e.target.value })}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Tier</label>
+            <select style={inputStyle} value={form.tier} onChange={(e) => set({ tier: e.target.value, price: e.target.value === 'free' ? 0 : form.price })}>
               {TIERS.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
-            </select>
-          </div>
-          <div className="form-field">
-            <label className="form-label">Rail</label>
-            <select className="form-input" value={form.rail === null ? 'null' : form.rail} onChange={(e) => set({ rail: e.target.value === 'null' ? null : e.target.value })}>
-              {RAILS.map((r) => <option key={String(r.v)} value={r.v === null ? 'null' : r.v}>{r.l}</option>)}
             </select>
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-field">
-            <label className="form-label">Brand (fallback wordmark) <span className="req">*</span></label>
-            <input
-              className={`form-input${errFor('brand') ? ' form-input-error' : ''}`}
-              value={form.brand}
-              onChange={(e) => set({ brand: e.target.value })}
-              onBlur={() => markTouched('brand')}
-              placeholder="Aurora"
-            />
+        {form.tier === 'premium' && (
+          <div style={rowStyle}>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Price (USD) <span style={{color: '#ef4444'}}>*</span></label>
+              <input type="number" step="0.01" min="0" style={{...inputStyle, borderColor: errFor('price') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.price || ''} onChange={(e) => set({ price: parseFloat(e.target.value) || 0 })} onBlur={() => markTouched('price')} placeholder="e.g. 9.99" />
+            </div>
+            <div style={fieldStyle}>
+              {/* empty cell to maintain grid */}
+            </div>
           </div>
-          <div className="form-field">
-            <label className="form-label">Thumb variant</label>
-            <select className="form-input" value={form.variant} onChange={(e) => set({ variant: e.target.value })}>
+        )}
+
+        <div style={rowStyle}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Theme Text (Fallback brand) <span style={{color: '#ef4444'}}>*</span></label>
+            <input style={{...inputStyle, borderColor: errFor('brand') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.brand} onChange={(e) => set({ brand: e.target.value })} onBlur={() => markTouched('brand')} placeholder="Aurora" />
+          </div>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Text Variant</label>
+            <select style={inputStyle} value={form.variant} onChange={(e) => set({ variant: e.target.value })}>
               {VARIANTS.map((v) => <option key={v.v} value={v.v}>{v.l}</option>)}
             </select>
           </div>
         </div>
 
-        <div className="form-field">
-          <label className="form-label">
-            Thumbnail image (optional) <span className="form-cap">· max {formatMB(imgCap)}</span>
-          </label>
-          <div className="upload-row">
-            <button type="button" className="btn-ghost" onClick={() => fileRef.current?.click()} disabled={uploading === 'img'}>
-              {uploading === 'img' ? 'Uploading…' : 'Upload image'}
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" onChange={onPickFile} style={{ display: 'none' }} />
-            <span className="upload-or">or</span>
-            <input
-              className="form-input upload-url"
-              placeholder="paste image URL (https://…)"
-              value={isDataUrl ? '' : form.thumbSrc}
-              onChange={(e) => set({ thumbSrc: e.target.value })}
-              disabled={isDataUrl}
-            />
-            {form.thumbSrc && (
-              <button type="button" className="btn-ghost btn-danger btn-small" onClick={clearThumb}>Clear</button>
-            )}
-          </div>
-          {form.thumbSrc && (
-            <div className="upload-preview">
-              <img src={form.thumbSrc} alt="thumbnail preview" />
-              <span className="upload-hint">
-                {isDataUrl ? 'Uploaded (base64, ~' + Math.round(form.thumbSrc.length / 1024) + ' KB)' : 'Hosted URL'}
-              </span>
-            </div>
-          )}
-        </div>
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }}></div>
 
-        <div className="form-field">
-          <label className="form-label">
-            Hover video (optional) <span className="form-cap">· max {formatMB(videoCap)}</span>
-          </label>
-          <div className="upload-row">
-            <button type="button" className="btn-ghost" onClick={() => videoRef.current?.click()} disabled={uploading === 'video'}>
-              {uploading === 'video' ? 'Uploading…' : 'Upload video'}
-            </button>
-            <input ref={videoRef} type="file" accept="video/*" onChange={onPickVideo} style={{ display: 'none' }} />
-            <span className="upload-or">or</span>
-            <input
-              className="form-input upload-url"
-              placeholder="paste video URL (https://…/preview.mp4)"
-              value={videoIsData ? '' : form.hoverSrc}
-              onChange={(e) => set({ hoverSrc: e.target.value })}
-              disabled={videoIsData}
-            />
-            {form.hoverSrc && (
-              <button type="button" className="btn-ghost btn-danger btn-small" onClick={clearVideo}>Clear</button>
-            )}
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Video / GIF Preview (plays on hover/click) <span style={{opacity: 0.5, fontWeight: 400, textTransform: 'none'}}>— max {formatMB(videoCap)}</span></label>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <button type="button" style={btnStyle} onClick={() => videoRef.current?.click()} disabled={uploading === 'video'}>{uploading === 'video' ? 'Uploading…' : 'Upload video / GIF'}</button>
+            <input ref={videoRef} type="file" accept="video/*,image/gif" onChange={onPickVideo} style={{ display: 'none' }} />
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>or</span>
+            <input style={{...inputStyle, flex: 1}} placeholder="paste video/GIF URL (https://…)" value={videoIsData ? '' : form.hoverSrc} onChange={(e) => set({ hoverSrc: e.target.value })} disabled={videoIsData} />
+            {form.hoverSrc && <button type="button" style={{...btnStyle, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)'}} onClick={clearVideo}>Clear</button>}
           </div>
           {form.hoverSrc && (
-            <div className="upload-preview">
-              <video src={form.hoverSrc} muted loop autoPlay playsInline />
-              <span className="upload-hint">
-                {videoIsData ? 'Uploaded (base64)' : 'Hosted URL'} · plays on hover, muted, looping
-              </span>
+            <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', display: 'inline-flex', flexDirection: 'column', gap: '8px' }}>
+              <video src={form.hoverSrc} muted loop autoPlay playsInline style={{ height: '120px', borderRadius: '8px' }} />
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{videoIsData ? 'Uploaded (base64)' : 'Hosted URL'} · plays on hover, muted, looping</span>
             </div>
           )}
         </div>
 
-        <div className="form-field">
-          <label className="form-label">Works with</label>
-          <div className="stack-toggles">
-            {STACK_OPTIONS.map((tool) => {
-              const on = form.stack.includes(tool)
-              return (
-                <button key={tool} type="button" className={`stack-toggle${on ? ' stack-toggle-on' : ''}`} onClick={() => toggleStack(tool)}>{tool}</button>
-              )
-            })}
-          </div>
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Source Prompt (paste-ready) <span style={{color: '#ef4444'}}>*</span></label>
+          <textarea style={{...inputStyle, minHeight: '300px', resize: 'vertical', fontFamily: "'JetBrains Mono', monospace", borderColor: errFor('prompt') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.prompt} onChange={(e) => set({ prompt: e.target.value })} onBlur={() => markTouched('prompt')} placeholder="Design a hero section..." />
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', textAlign: 'right' }}>{form.prompt.length} characters</div>
         </div>
 
-        <div className="form-field">
-          <label className="form-label">Prompt (paste-ready) <span className="req">*</span></label>
-          <textarea
-            className={`form-textarea${errFor('prompt') ? ' form-input-error' : ''}`}
-            value={form.prompt}
-            onChange={(e) => set({ prompt: e.target.value })}
-            onBlur={() => markTouched('prompt')}
-            placeholder={`Design a hero section for a dark-theme landing page.
-
-Layout
-- Full viewport width. 96px top padding.
-
-Palette
-- Background #0A0A0A
-...`}
-            rows={12}
-          />
-          <div className="form-hint">{form.prompt.length} characters</div>
-        </div>
-
-        <div className="form-actions">
-          <button type="submit" className="btn-primary">
-            {saving ? 'Saving…' : (backendMode === 'supabase' ? 'Publish prompt' : 'Save prompt')}
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '16px' }}>
+          <button type="button" onClick={() => submitWithStatus('draft')} style={btnStyle} disabled={saving}>
+            {saving ? 'Saving…' : 'Save as Draft'}
           </button>
-          {missing.length > 0 && (
-            <span className="form-missing">Missing: <strong>{missing.join(', ')}</strong></span>
-          )}
-          <span className="form-id">Next id: <code>{form.id}</code></span>
+          <button type="button" onClick={() => submitWithStatus('published')} style={btnPrimaryStyle} disabled={saving}>
+            {saving ? 'Publishing…' : 'Publish Live'}
+          </button>
+          {missing.length > 0 && Object.keys(touched).length > 0 && <span style={{ color: '#ef4444', fontSize: '14px' }}>Missing: <strong>{missing.join(', ')}</strong></span>}
+          <span style={{ marginLeft: 'auto', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>Next id: <code style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '6px' }}>{form.id}</code></span>
         </div>
       </form>
 
-      <section className="admin-drafts">
-        <div className="drafts-head">
-          <h2 className="drafts-title">
+      <section style={{ marginTop: '80px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, margin: 0 }}>
             {backendMode === 'supabase' ? 'Live prompts' : 'Your drafts'} ({draftsCount})
           </h2>
           {draftsCount > 0 && (
-            <div className="drafts-actions">
-              <button type="button" className="btn-ghost" onClick={onExportAll}>Export as JSON</button>
-              <button type="button" className="btn-ghost btn-danger" onClick={() => {
-                if (confirm('Delete all ' + (backendMode === 'supabase' ? 'live prompts?' : 'drafts?'))) clearDrafts()
-              }}>Clear all</button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button type="button" style={btnStyle} onClick={onExportAll}>Export JSON</button>
+              <button type="button" style={{...btnStyle, background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.2)'}} onClick={() => { if (confirm('Delete all?')) clearDrafts() }}>Clear all</button>
             </div>
           )}
         </div>
 
         {draftsCount === 0 ? (
-          <div className="drafts-empty">No {backendMode === 'supabase' ? 'live prompts' : 'drafts'} yet. Add your first prompt above.</div>
+          <div style={{ padding: '48px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '24px', color: 'rgba(255,255,255,0.5)' }}>No drafts yet. Add your first prompt above.</div>
         ) : (
-          <div className="drafts-list">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {drafts.map((p) => (
-              <article key={p.id} className="draft-row">
-                {p.thumbSrc && <img className="draft-thumb" src={p.thumbSrc} alt="" />}
-                <div className="draft-main">
-                  <div className="draft-title">{p.title}</div>
-                  <div className="draft-meta">
-                    <span className="draft-tag">{p.section}</span>
-                    <span className="draft-tag">{p.tier}</span>
-                    {p.rail && <span className="draft-tag draft-tag-rail">{p.rail}</span>}
-                    <span className="draft-id">{p.id}</span>
+              <article key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>{p.title}</div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', background: p.status === 'published' ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.1)', color: p.status === 'published' ? '#93C5FD' : '#fff', padding: '4px 10px', borderRadius: '999px', fontWeight: 600 }}>{p.status === 'published' ? 'LIVE' : 'DRAFT'}</span>
+                    <span style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '999px' }}>{p.category}</span>
+                    <span style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '999px' }}>{p.tier}</span>
+                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{p.id}</span>
                   </div>
                 </div>
-                <div className="draft-actions">
-                  <button className="btn-ghost btn-small" onClick={() => openItem(p)}>Preview</button>
-                  <button className="btn-ghost btn-small" onClick={() => onCopyCode(p)}>Copy code</button>
-                  <button className="btn-ghost btn-small btn-danger" onClick={() => onRemove(p.id)}>Delete</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button style={btnStyle} onClick={() => onEdit(p)}>Edit</button>
+                  <button style={{...btnStyle, background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.2)'}} onClick={() => onRemove(p.id)}>Delete</button>
                 </div>
               </article>
             ))}
           </div>
         )}
+      </section>
 
         {backendMode === 'local' && (
-          <div className="admin-tip">
-            <strong>Local mode (IndexedDB):</strong> drafts + media are saved in this browser (much bigger quota than localStorage — 20 MB videos work). They stay through page reload but never publish to other visitors. Click <em>Copy code</em> on a draft and paste into <code>src/data/prompts.js</code>, or set up Supabase (see <code>README.md</code>) to write straight to the live site from this form.
+          <div style={{ marginTop: '32px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '24px', borderRadius: '16px', color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: 1.6 }}>
+            <strong style={{ color: '#93C5FD' }}>Local mode (IndexedDB):</strong> Drafts and media are saved directly in this browser with a generous quota (20 MB videos work easily). They persist through page reloads but will not be published to other visitors. Click <em style={{ color: '#fff', fontStyle: 'normal', fontWeight: 600 }}>Copy code</em> on a draft and paste it into <code style={{ background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", color: '#93C5FD' }}>src/data/prompts.js</code>, or set up Supabase to write straight to the live site.
           </div>
         )}
-      </section>
     </div>
   )
 }

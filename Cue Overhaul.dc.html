@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #14110E; overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  a { color: #D8703F; text-decoration: none; }
+  a:hover { color: #C25E30; }
+  input::placeholder { color: rgba(232,225,214,0.34); }
+  select option { background: #1A1714; color: #E8E1D6; }
+  ::selection { background: rgba(216,112,63,0.30); }
+  @keyframes navIn { from { opacity: 0; transform: translate3d(-50%,-42px,0); } to { opacity: 1; transform: translate3d(-50%,0,0); } }
+  @keyframes heroRise { from { transform: translateY(118%) rotate(3deg); opacity: 0; } to { transform: translateY(0) rotate(0); opacity: 1; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeGrid { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes sheen { 0% { transform: translateX(-140%) skewX(-14deg); } 100% { transform: translateX(320%) skewX(-14deg); } }
+  @keyframes blink { 0%, 48% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes barpulse { 0%, 100% { opacity: 0.45; transform: scaleX(0.72); } 50% { opacity: 1; transform: scaleX(1); } }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" style="background: var(--bg,#0A0A0A); color: var(--t1,#E8E1D6); font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; height: 100vh; overflow: hidden; position: relative;">
+
+  <div ref="{{ setBar }}" style="position: fixed; top: 0; right: 0; width: 2px; height: 0; background: var(--acc,#3B82F6); opacity: 0.55; z-index: 130; pointer-events: none;"></div>
+
+  <nav ref="{{ setNav }}" aria-label="Primary" style="position: fixed; top: 22px; left: 50%; transform: translate3d(-50%,0,0); z-index: 120; display: flex; align-items: center; gap: 4px; padding: 9px 24px; border-radius: 999px; background: var(--glass,rgba(10,10,10,0.55)); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border: 1px solid var(--glass-border,rgba(255,255,255,0.10)); box-shadow: 0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06); animation: navIn .85s cubic-bezier(0.16,1,0.3,1) both;">
+    <a href="#" onClick="{{ goHome }}" style="font-size: 22px; font-weight: 600; letter-spacing: -0.045em; color: var(--tstrong,#fff); line-height: 1;">cue<span style="color: var(--acc,#3B82F6);">·</span></a>
+    <span style="width: 1px; height: 20px; background: var(--glass-border,rgba(255,255,255,0.12)); margin: 0 16px 0 12px;"></span>
+    <div style="display: flex; align-items: center; gap: 22px;">
+      <sc-for list="{{ navLinks }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.onClick }}" style="position: relative; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.01em; color: var(--t2,rgba(255,255,255,0.62)); padding: 6px 1px; transition: color .18s ease;" style-hover="color: var(--tstrong,#fff);">
+          {{ t.label }}
+          <sc-if value="{{ t.active }}" hint-placeholder-val="{{ false }}">
+            <span style="position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; border-radius: 2px; background: var(--acc,#3B82F6);"></span>
+          </sc-if>
+        </button>
+      </sc-for>
+    </div>
+  </nav>
+
+  <div ref="{{ setAuthBar }}" style="position: fixed; top: 22px; right: clamp(16px,3vw,32px); z-index: 121; display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 10px; border-radius: 999px; background: var(--glass,rgba(10,10,10,0.55)); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border: 1px solid var(--glass-border,rgba(255,255,255,0.10)); box-shadow: 0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06); animation: fadeUp .7s cubic-bezier(0.16,1,0.3,1) both;">
+    <button onClick="{{ openLogin }}" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.01em; color: var(--t2,rgba(255,255,255,0.62)); padding: 8px 13px; border-radius: 999px; transition: color .18s ease;" style-hover="color: var(--tstrong,#fff);">Log in</button>
+    <button onClick="{{ openSignup }}" style="display: inline-flex; align-items: center; background: var(--cta-bg,#F4F4F1); color: var(--cta-fg,#0A0A0A); border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: -0.005em; padding: 9px 18px; border-radius: 999px; transition: transform .2s ease, box-shadow .3s ease;" style-hover="transform: translateY(-1px); box-shadow: 0 10px 24px -10px rgba(0,0,0,0.7);">Sign up</button>
+  </div>
+
+  <sc-if value="{{ authOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAuth }}" style="position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 24px; animation: fadeUp .22s ease both;">
+      <form onSubmit="{{ submitAuth }}" onClick="{{ stop }}" style="width: 100%; max-width: 408px; background: var(--glass,rgba(10,10,10,0.72)); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border,rgba(255,255,255,0.12)); border-radius: 24px; box-shadow: 0 32px 80px -24px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.06); padding: 30px; position: relative;">
+        <button type="button" onClick="{{ closeAuth }}" aria-label="Close" style="position: absolute; top: 20px; right: 20px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--border,rgba(255,255,255,0.08)); color: var(--t2,rgba(255,255,255,0.6)); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: color .15s ease, background .15s ease;" style-hover="color: var(--tstrong,#fff); background: rgba(255,255,255,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg></button>
+        <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.045em; color: var(--tstrong,#fff); line-height: 1;">cue<span style="color: var(--acc,#3B82F6);">·</span></div>
+        <h2 style="margin-top: 20px; font-size: 25px; font-weight: 700; letter-spacing: -0.03em; color: var(--tstrong,#fff);">{{ authTitle }}</h2>
+        <p style="margin-top: 7px; font-size: 13px; line-height: 1.5; color: var(--t2,rgba(255,255,255,0.6));">{{ authSub }}</p>
+
+        <div style="display: inline-flex; align-items: center; gap: 4px; margin-top: 22px; background: var(--s1,#111); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 999px; padding: 4px; width: 100%;">
+          <button type="button" onClick="{{ setLoginMode }}" style="{{ loginTabStyle }}">Log in</button>
+          <button type="button" onClick="{{ setSignupMode }}" style="{{ signupTabStyle }}">Sign up</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 13px; margin-top: 22px;">
+          <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+            <label style="display: flex; flex-direction: column; gap: 7px;"><span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">Full name</span><input type="text" placeholder="Ada Lovelace" style="background: var(--s1,#111); border: 1px solid var(--border,rgba(255,255,255,0.1)); border-radius: 12px; padding: 12px 15px; color: var(--tstrong,#fff); font-family: inherit; font-size: 13.5px; outline: none; transition: border-color .18s ease;" style-focus="border-color: var(--acc,#3B82F6);" /></label>
+          </sc-if>
+          <label style="display: flex; flex-direction: column; gap: 7px;"><span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">Email</span><input type="email" required placeholder="you@studio.com" style="background: var(--s1,#111); border: 1px solid var(--border,rgba(255,255,255,0.1)); border-radius: 12px; padding: 12px 15px; color: var(--tstrong,#fff); font-family: inherit; font-size: 13.5px; outline: none; transition: border-color .18s ease;" style-focus="border-color: var(--acc,#3B82F6);" /></label>
+          <label style="display: flex; flex-direction: column; gap: 7px;"><span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">Password</span><input type="password" required placeholder="••••••••" style="background: var(--s1,#111); border: 1px solid var(--border,rgba(255,255,255,0.1)); border-radius: 12px; padding: 12px 15px; color: var(--tstrong,#fff); font-family: inherit; font-size: 13.5px; outline: none; transition: border-color .18s ease;" style-focus="border-color: var(--acc,#3B82F6);" /></label>
+        </div>
+
+        <button type="submit" style="margin-top: 22px; width: 100%; background: var(--cta-bg,#F4F4F1); color: var(--cta-fg,#0A0A0A); border: none; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; padding: 14px; border-radius: 999px; transition: transform .2s ease, box-shadow .3s ease;" style-hover="transform: translateY(-1px); box-shadow: 0 14px 32px -12px rgba(0,0,0,0.7);">{{ authCta }}</button>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin: 20px 0 16px;"><span style="flex: 1; height: 1px; background: var(--border,rgba(255,255,255,0.08));"></span><span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.4)); font-weight: 600;">or</span><span style="flex: 1; height: 1px; background: var(--border,rgba(255,255,255,0.08));"></span></div>
+        <button type="button" onClick="{{ submitAuth }}" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--s1,#111); color: var(--t1,#EDEDED); border: 1px solid var(--border,rgba(255,255,255,0.1)); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 12px; border-radius: 999px; transition: border-color .18s ease;" style-hover="border-color: var(--border-strong,rgba(255,255,255,0.16));"><svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.3-.97 2.4-2.06 3.14v2.6h3.33C20.7 18.1 21.5 15.3 21.5 12c0-.66-.06-1.3-.17-1.9H12z"></path><path fill="#34A853" d="M12 21.5c2.7 0 5-.9 6.63-2.44l-3.33-2.6c-.92.62-2.1.98-3.3.98-2.54 0-4.7-1.7-5.47-4.02H3.1v2.68A9.5 9.5 0 0012 21.5z"></path><path fill="#FBBC05" d="M6.53 13.42a5.7 5.7 0 010-3.64V7.1H3.1a9.5 9.5 0 000 8.5l3.43-2.18z"></path><path fill="#4285F4" d="M12 5.5c1.47 0 2.8.5 3.84 1.5l2.88-2.88A9.5 9.5 0 003.1 7.1l3.43 2.68C7.3 7.2 9.46 5.5 12 5.5z"></path></svg>Continue with Google</button>
+
+        <p style="margin-top: 18px; text-align: center; font-size: 12px; color: var(--t3,rgba(255,255,255,0.45));">{{ switchPrompt }} <button type="button" onClick="{{ toggleAuthMode }}" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--acc-fg,#93C5FD); padding: 0;">{{ switchAction }}</button></p>
+      </form>
+    </div>
+  </sc-if>
+
+  <div ref="{{ setContent }}" style="position: absolute; top: 0; left: 0; width: 100%; will-change: transform;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 118px clamp(20px,4vw,56px) 90px;">
+
+      <section ref="{{ setHero }}" style="position: relative; min-height: 86vh; display: flex; flex-direction: column; justify-content: center; border: 1px solid var(--border-strong,rgba(255,255,255,0.14)); border-radius: 30px; padding: clamp(30px,5vw,72px); overflow: hidden; will-change: transform, opacity;">
+        <div style="position: absolute; top: -220px; left: 50%; transform: translateX(-50%); width: 780px; height: 480px; border-radius: 50%; background: var(--acc,#D8703F); opacity: 0.06; filter: blur(130px); pointer-events: none;"></div>
+
+        <div style="display: inline-flex; align-items: center; gap: 9px; align-self: flex-start; background: var(--acc-bg,#0B1F3D); color: var(--acc-fg,#93C5FD); border: 1px solid var(--acc-line,rgba(147,197,253,0.22)); padding: 7px 15px; border-radius: 999px; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; margin-bottom: clamp(26px,3vw,44px); animation: fadeUp .7s ease both;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--acc,#3B82F6); box-shadow: 0 0 10px var(--acc,#3B82F6);"></span>Fresh drops every week
+        </div>
+
+        <h1 style="font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; font-weight: 800; letter-spacing: -0.045em; line-height: 0.82; text-transform: uppercase; color: var(--tstrong,#fff); font-size: clamp(58px,11vw,178px); text-wrap: balance;">
+          <span style="display: block; overflow: hidden; padding-bottom: 0.08em;">
+            <span style="display: inline-block; margin-right: 0.16em; animation: heroRise 1s cubic-bezier(0.16,1,0.3,1) both; animation-delay: 0.06s;">SHIP</span><span style="display: inline-block; margin-right: 0.16em; font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; text-transform: none; color: var(--acc-fg,#93C5FD); letter-spacing: -0.02em; animation: heroRise 1s cubic-bezier(0.16,1,0.3,1) both; animation-delay: 0.14s;">your</span><span style="display: inline-block; animation: heroRise 1s cubic-bezier(0.16,1,0.3,1) both; animation-delay: 0.22s;">NEXT</span>
+          </span>
+          <span style="display: block; overflow: hidden; padding-bottom: 0.08em;">
+            <span style="display: inline-block; margin-right: 0.16em; animation: heroRise 1s cubic-bezier(0.16,1,0.3,1) both; animation-delay: 0.32s;">LANDING</span><span style="display: inline-block; animation: heroRise 1s cubic-bezier(0.16,1,0.3,1) both; animation-delay: 0.40s;">PAGE</span>
+          </span>
+        </h1>
+
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 36px; flex-wrap: wrap; margin-top: clamp(30px,4vw,54px); animation: fadeUp .7s ease .5s both;">
+          <div style="max-width: 460px;">
+            <p style="color: var(--t2,rgba(255,255,255,0.65)); font-size: clamp(15px,1.15vw,18px); line-height: 1.55; letter-spacing: -0.005em;">Battle-tested prompts for Bolt, v0, Cursor, and Framer. Copy, paste, ship.</p>
+            <p style="margin-top: 14px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">No fluff · production-grade · updated weekly</p>
+          </div>
+          <button style="display: inline-flex; align-items: center; gap: 8px; background: var(--cta-bg,#F4F4F1); color: var(--cta-fg,#0A0A0A); font-weight: 600; font-size: 15px; padding: 15px 30px; border-radius: 999px; border: none; cursor: pointer; font-family: inherit; letter-spacing: -0.01em; white-space: nowrap; transition: transform .2s ease, box-shadow .3s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 16px 38px -12px rgba(0,0,0,0.7);">Get unlimited →</button>
+        </div>
+
+        <div style="position: absolute; left: clamp(30px,5vw,72px); right: clamp(30px,5vw,72px); bottom: clamp(22px,3vw,34px); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; animation: fadeUp .7s ease .68s both;">
+          <span style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">01 — Curated by hand</span>
+          <span style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">204 prompts</span>
+          <span style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">Bolt · v0 · Cursor · Framer</span>
+          <span style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">Scroll to browse ↓</span>
+        </div>
+      </section>
+
+      <div ref="{{ setBrowse }}" style="padding: 56px 0 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 1 1 300px; min-width: 236px; display: flex; align-items: center; gap: 11px; background: var(--s1,#111); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 999px; padding: 11px 18px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0; color: var(--t3,rgba(255,255,255,0.45));"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+          <input value="{{ query }}" onInput="{{ onSearchInput }}" placeholder="Search prompts, brands, categories…" aria-label="Search prompts" style="flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--tstrong,#fff); font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0.01em; padding: 0;" />
+          <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ clearQuery }}" aria-label="Clear search" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.07); border: none; color: var(--t2,rgba(255,255,255,0.6)); cursor: pointer; flex-shrink: 0; transition: color .15s ease, background .15s ease;" style-hover="color: var(--tstrong,#fff); background: rgba(255,255,255,0.14);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 11px; height: 11px;"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg></button>
+          </sc-if>
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--s1,#111); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 999px; padding: 4px; flex-shrink: 0;">
+          <sc-for list="{{ priceOpts }}" as="p" hint-placeholder-count="3">
+            <button onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</button>
+          </sc-for>
+        </div>
+        <div ref="{{ setSortRef }}" style="position: relative; flex-shrink: 0;">
+          <button onClick="{{ toggleSort }}" aria-label="Sort prompts" style="display: inline-flex; align-items: center; gap: 9px; background: var(--s1,#111); color: var(--t1,#EDEDED); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 999px; padding: 10px 15px; font-family: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: border-color .18s ease;" style-hover="border-color: var(--border-strong,rgba(255,255,255,0.14));">
+            <span style="color: var(--t3,rgba(255,255,255,0.45));">Sort</span>{{ sortLabel }}<span style="{{ chevStyle }}"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width: 10px; height: 10px; display: block;"><path d="M3 4.5L6 7.5L9 4.5"></path></svg></span>
+          </button>
+          <sc-if value="{{ sortOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; min-width: 200px; background: var(--s2,#171717); border: 1px solid var(--border-strong,rgba(255,255,255,0.14)); border-radius: 14px; padding: 6px; box-shadow: 0 22px 54px -18px rgba(0,0,0,0.85); animation: fadeUp .18s ease both;">
+              <sc-for list="{{ sortOpts }}" as="o" hint-placeholder-count="4">
+                <button onClick="{{ o.onClick }}" style="{{ o.style }}"><span>{{ o.label }}</span><sc-if value="{{ o.active }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; flex-shrink: 0;"><path d="M20 6L9 17l-5-5"></path></svg></sc-if></button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="padding: 0 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: baseline; gap: 14px; flex-shrink: 0;">
+          <span style="font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">Browse the library</span>
+          <span style="font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--acc-fg,#93C5FD); font-weight: 600;">{{ resultCount }} {{ countLabel }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <sc-for list="{{ catOpts }}" as="c" hint-placeholder-count="7">
+            <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ browsing }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <section style="padding: 34px 0 72px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 26px; gap: 16px;">
+              <div style="display: flex; align-items: baseline; gap: 14px;">
+                <span style="font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">01</span>
+                <h2 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--t1,#EDEDED);">Featured picks</h2>
+              </div>
+              <span style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">2 prompts</span>
+            </div>
+            <div data-speed="-0.03" style="display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 22px; row-gap: 44px; will-change: transform; align-items: start;">
+              <sc-for list="{{ featured }}" as="item" hint-placeholder-count="2">
+                <div>
+                  <article onMouseEnter="{{ onCardEnter }}" onMouseLeave="{{ onCardLeave }}" style="display: flex; flex-direction: column; gap: 14px; cursor: pointer; transition: transform .55s cubic-bezier(0.2,0.7,0.2,1); transform: scale(1);">
+                    <div data-thumb style="position: relative; aspect-ratio: 16 / 10; border-radius: 24px; overflow: hidden; background: var(--s1,#111); box-shadow: inset 0 0 0 1px var(--border,rgba(255,255,255,0.08)); transition: box-shadow .45s ease, transform .45s ease;">
+                      <div data-mock style="position: absolute; inset: 0; transition: opacity .45s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 28px;">
+                        <div style="{{ item.brandStyle }}">{{ item.brand }}</div>
+                      </div>
+                      <div data-preview style="position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; background: var(--s2,#171717); overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 15px 18px; border-bottom: 1px solid var(--border,rgba(255,255,255,0.08));"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--acc,#3B82F6);"></span><span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="margin-left: 10px; height: 8px; flex: 1; max-width: 140px; border-radius: 4px; background: rgba(255,255,255,0.08);"></span></div>
+                        <div style="flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 11px; justify-content: center;">
+                          <div style="height: 16px; width: 68%; border-radius: 4px; background: var(--acc,#3B82F6); opacity: 0.92; transform-origin: left; animation: barpulse 1.9s ease-in-out infinite;"></div>
+                          <div style="height: 11px; width: 52%; border-radius: 4px; background: rgba(255,255,255,0.14); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .2s;"></div>
+                          <div style="height: 11px; width: 60%; border-radius: 4px; background: rgba(255,255,255,0.10); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .4s;"></div>
+                          <div style="display: flex; gap: 9px; margin-top: 8px; align-items: center;"><span style="height: 28px; width: 92px; border-radius: 999px; background: var(--acc,#3B82F6);"></span><span style="height: 28px; width: 28px; border-radius: 999px; border: 1px solid var(--border-strong,rgba(255,255,255,0.14));"></span><span style="width: 2px; height: 24px; background: var(--acc-fg,#93C5FD); animation: blink 1s step-end infinite;"></span></div>
+                        </div>
+                        <div style="position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.10), transparent); animation: sheen 2.6s linear infinite; pointer-events: none;"></div>
+                      </div>
+                    </div>
+                    <div style="padding: 0 4px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <h3 style="font-size: 15.5px; font-weight: 600; color: var(--t1,#EDEDED); letter-spacing: -0.01em;">{{ item.title }}</h3>
+                        <sc-if value="{{ item.isPremium }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: var(--acc-bg,#0B1F3D); border: 1px solid var(--acc-line,rgba(147,197,253,0.22)); color: var(--acc-fg,#93C5FD); padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>Premium</span></sc-if>
+                        <sc-if value="{{ item.isFree }}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: #141414; border: 1px solid #262626; color: #B8B8B8; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>Copy</span></sc-if>
+                      </div>
+                      <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); margin-top: 8px; font-weight: 600;">{{ item.category }}</div>
+                    </div>
+                  </article>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section style="padding: 34px 0 72px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 26px; gap: 16px;">
+              <div style="display: flex; align-items: baseline; gap: 14px;">
+                <span style="font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">02</span>
+                <h2 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--t1,#EDEDED);">Fresh finds</h2>
+              </div>
+              <span style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">3 prompts</span>
+            </div>
+            <div data-speed="0.02" style="display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 20px; row-gap: 44px; will-change: transform; align-items: start;">
+              <sc-for list="{{ fresh }}" as="item" hint-placeholder-count="3">
+                <div>
+                  <article onMouseEnter="{{ onCardEnter }}" onMouseLeave="{{ onCardLeave }}" style="display: flex; flex-direction: column; gap: 14px; cursor: pointer; transition: transform .55s cubic-bezier(0.2,0.7,0.2,1); transform: scale(1);">
+                    <div data-thumb style="position: relative; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; background: var(--s1,#111); box-shadow: inset 0 0 0 1px var(--border,rgba(255,255,255,0.08)); transition: box-shadow .45s ease, transform .45s ease;">
+                      <div data-mock style="position: absolute; inset: 0; transition: opacity .45s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 28px;">
+                        <div style="{{ item.brandStyle }}">{{ item.brand }}</div>
+                      </div>
+                      <div data-preview style="position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; background: var(--s2,#171717); overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 13px 16px; border-bottom: 1px solid var(--border,rgba(255,255,255,0.08));"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--acc,#3B82F6);"></span><span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="margin-left: 8px; height: 7px; flex: 1; max-width: 110px; border-radius: 4px; background: rgba(255,255,255,0.08);"></span></div>
+                        <div style="flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 9px; justify-content: center;">
+                          <div style="height: 13px; width: 70%; border-radius: 4px; background: var(--acc,#3B82F6); opacity: 0.92; transform-origin: left; animation: barpulse 1.9s ease-in-out infinite;"></div>
+                          <div style="height: 9px; width: 52%; border-radius: 4px; background: rgba(255,255,255,0.14); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .2s;"></div>
+                          <div style="height: 9px; width: 60%; border-radius: 4px; background: rgba(255,255,255,0.10); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .4s;"></div>
+                          <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center;"><span style="height: 24px; width: 78px; border-radius: 999px; background: var(--acc,#3B82F6);"></span><span style="height: 24px; width: 24px; border-radius: 999px; border: 1px solid var(--border-strong,rgba(255,255,255,0.14));"></span><span style="width: 2px; height: 20px; background: var(--acc-fg,#93C5FD); animation: blink 1s step-end infinite;"></span></div>
+                        </div>
+                        <div style="position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.10), transparent); animation: sheen 2.6s linear infinite; pointer-events: none;"></div>
+                      </div>
+                    </div>
+                    <div style="padding: 0 4px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <h3 style="font-size: 15px; font-weight: 600; color: var(--t1,#EDEDED); letter-spacing: -0.01em;">{{ item.title }}</h3>
+                        <sc-if value="{{ item.isPremium }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: var(--acc-bg,#0B1F3D); border: 1px solid var(--acc-line,rgba(147,197,253,0.22)); color: var(--acc-fg,#93C5FD); padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>Premium</span></sc-if>
+                        <sc-if value="{{ item.isFree }}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: #141414; border: 1px solid #262626; color: #B8B8B8; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>Copy</span></sc-if>
+                      </div>
+                      <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); margin-top: 7px; font-weight: 600;">{{ item.category }}</div>
+                    </div>
+                  </article>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section style="padding: 34px 0 40px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 26px; gap: 16px;">
+              <div style="display: flex; align-items: baseline; gap: 14px;">
+                <span style="font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">03</span>
+                <h2 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--t1,#EDEDED);">Trending this week</h2>
+              </div>
+              <span style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">3 prompts</span>
+            </div>
+            <div data-speed="0.05" style="display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 20px; row-gap: 44px; will-change: transform; align-items: start;">
+              <sc-for list="{{ trending }}" as="item" hint-placeholder-count="3">
+                <div>
+                  <article onMouseEnter="{{ onCardEnter }}" onMouseLeave="{{ onCardLeave }}" style="display: flex; flex-direction: column; gap: 14px; cursor: pointer; transition: transform .55s cubic-bezier(0.2,0.7,0.2,1); transform: scale(1);">
+                    <div data-thumb style="position: relative; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; background: var(--s1,#111); box-shadow: inset 0 0 0 1px var(--border,rgba(255,255,255,0.08)); transition: box-shadow .45s ease, transform .45s ease;">
+                      <div data-mock style="position: absolute; inset: 0; transition: opacity .45s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 28px;">
+                        <div style="{{ item.brandStyle }}">{{ item.brand }}</div>
+                      </div>
+                      <div data-preview style="position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; background: var(--s2,#171717); overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 13px 16px; border-bottom: 1px solid var(--border,rgba(255,255,255,0.08));"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--acc,#3B82F6);"></span><span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="margin-left: 8px; height: 7px; flex: 1; max-width: 110px; border-radius: 4px; background: rgba(255,255,255,0.08);"></span></div>
+                        <div style="flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 9px; justify-content: center;">
+                          <div style="height: 13px; width: 70%; border-radius: 4px; background: var(--acc,#3B82F6); opacity: 0.92; transform-origin: left; animation: barpulse 1.9s ease-in-out infinite;"></div>
+                          <div style="height: 9px; width: 52%; border-radius: 4px; background: rgba(255,255,255,0.14); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .2s;"></div>
+                          <div style="height: 9px; width: 60%; border-radius: 4px; background: rgba(255,255,255,0.10); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .4s;"></div>
+                          <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center;"><span style="height: 24px; width: 78px; border-radius: 999px; background: var(--acc,#3B82F6);"></span><span style="height: 24px; width: 24px; border-radius: 999px; border: 1px solid var(--border-strong,rgba(255,255,255,0.14));"></span><span style="width: 2px; height: 20px; background: var(--acc-fg,#93C5FD); animation: blink 1s step-end infinite;"></span></div>
+                        </div>
+                        <div style="position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.10), transparent); animation: sheen 2.6s linear infinite; pointer-events: none;"></div>
+                      </div>
+                    </div>
+                    <div style="padding: 0 4px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <h3 style="font-size: 15px; font-weight: 600; color: var(--t1,#EDEDED); letter-spacing: -0.01em;">{{ item.title }}</h3>
+                        <sc-if value="{{ item.isPremium }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: var(--acc-bg,#0B1F3D); border: 1px solid var(--acc-line,rgba(147,197,253,0.22)); color: var(--acc-fg,#93C5FD); padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>Premium</span></sc-if>
+                        <sc-if value="{{ item.isFree }}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: #141414; border: 1px solid #262626; color: #B8B8B8; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>Copy</span></sc-if>
+                      </div>
+                      <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); margin-top: 7px; font-weight: 600;">{{ item.category }}</div>
+                    </div>
+                  </article>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ filtering }}" hint-placeholder-val="{{ false }}">
+        <section style="padding: 34px 0 40px; min-height: 60vh;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 26px; gap: 16px;">
+            <div style="display: flex; align-items: baseline; gap: 14px;">
+              <span style="font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); font-weight: 600;">Results</span>
+              <h2 style="font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--t1,#EDEDED);">{{ resultsHeading }}</h2>
+            </div>
+            <button onClick="{{ clearFilters }}" style="display: inline-flex; align-items: center; gap: 7px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--acc-fg,#93C5FD);" style-hover="color: var(--tstrong,#fff);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>Clear filters</button>
+          </div>
+          <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+            <div data-speed="0.03" style="display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 20px; row-gap: 44px; will-change: transform; align-items: start; animation: fadeGrid .4s ease both;">
+              <sc-for list="{{ results }}" as="item" hint-placeholder-count="6">
+                <div>
+                  <article onMouseEnter="{{ onCardEnter }}" onMouseLeave="{{ onCardLeave }}" style="display: flex; flex-direction: column; gap: 14px; cursor: pointer; transition: transform .55s cubic-bezier(0.2,0.7,0.2,1); transform: scale(1);">
+                    <div data-thumb style="position: relative; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; background: var(--s1,#111); box-shadow: inset 0 0 0 1px var(--border,rgba(255,255,255,0.08)); transition: box-shadow .45s ease, transform .45s ease;">
+                      <div data-mock style="position: absolute; inset: 0; transition: opacity .45s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 28px;">
+                        <div style="{{ item.brandStyle }}">{{ item.brand }}</div>
+                      </div>
+                      <div data-preview style="position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; background: var(--s2,#171717); overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 13px 16px; border-bottom: 1px solid var(--border,rgba(255,255,255,0.08));"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--acc,#3B82F6);"></span><span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.16);"></span><span style="margin-left: 8px; height: 7px; flex: 1; max-width: 110px; border-radius: 4px; background: rgba(255,255,255,0.08);"></span></div>
+                        <div style="flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 9px; justify-content: center;">
+                          <div style="height: 13px; width: 70%; border-radius: 4px; background: var(--acc,#3B82F6); opacity: 0.92; transform-origin: left; animation: barpulse 1.9s ease-in-out infinite;"></div>
+                          <div style="height: 9px; width: 52%; border-radius: 4px; background: rgba(255,255,255,0.14); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .2s;"></div>
+                          <div style="height: 9px; width: 60%; border-radius: 4px; background: rgba(255,255,255,0.10); transform-origin: left; animation: barpulse 1.9s ease-in-out infinite .4s;"></div>
+                          <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center;"><span style="height: 24px; width: 78px; border-radius: 999px; background: var(--acc,#3B82F6);"></span><span style="height: 24px; width: 24px; border-radius: 999px; border: 1px solid var(--border-strong,rgba(255,255,255,0.14));"></span><span style="width: 2px; height: 20px; background: var(--acc-fg,#93C5FD); animation: blink 1s step-end infinite;"></span></div>
+                        </div>
+                        <div style="position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.10), transparent); animation: sheen 2.6s linear infinite; pointer-events: none;"></div>
+                      </div>
+                    </div>
+                    <div style="padding: 0 4px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <h3 style="font-size: 15px; font-weight: 600; color: var(--t1,#EDEDED); letter-spacing: -0.01em;">{{ item.title }}</h3>
+                        <sc-if value="{{ item.isPremium }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: var(--acc-bg,#0B1F3D); border: 1px solid var(--acc-line,rgba(147,197,253,0.22)); color: var(--acc-fg,#93C5FD); padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>Premium</span></sc-if>
+                        <sc-if value="{{ item.isFree }}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; align-items: center; gap: 6px; background: #141414; border: 1px solid #262626; color: #B8B8B8; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; flex-shrink: 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>Copy</span></sc-if>
+                      </div>
+                      <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3,rgba(255,255,255,0.45)); margin-top: 7px; font-weight: 600;">{{ item.category }}</div>
+                    </div>
+                  </article>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 90px 20px; gap: 18px;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--border,rgba(255,255,255,0.08)); display: flex; align-items: center; justify-content: center; color: var(--t3,rgba(255,255,255,0.45));"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg></div>
+              <div>
+                <div style="font-size: 17px; font-weight: 600; color: var(--t1,#EDEDED); letter-spacing: -0.01em;">No prompts match your filters</div>
+                <div style="font-size: 12.5px; color: var(--t3,rgba(255,255,255,0.45)); margin-top: 6px;">Try a broader category or clear the search.</div>
+              </div>
+              <button onClick="{{ clearFilters }}" style="margin-top: 4px; background: var(--cta-bg,#F4F4F1); color: var(--cta-fg,#0A0A0A); font-family: inherit; font-weight: 600; font-size: 12.5px; padding: 11px 22px; border-radius: 999px; border: none; cursor: pointer; letter-spacing: -0.01em;">Reset filters</button>
+            </div>
+          </sc-if>
+        </section>
+      </sc-if>
+
+      <footer style="border-top: 1px solid var(--border,rgba(255,255,255,0.08)); padding-top: 34px; margin-top: 60px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: baseline; gap: 14px;">
+          <span style="font-size: 20px; font-weight: 600; letter-spacing: -0.04em; color: var(--tstrong,#fff);">cue<span style="color: var(--acc,#3B82F6);">·</span></span>
+          <span style="font-size: 12px; color: var(--t3,rgba(255,255,255,0.45)); letter-spacing: 0.01em;">Copy, paste, ship.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: 0.04em; color: var(--t3,rgba(255,255,255,0.45));">
+          <span>© 2026 Cue library</span><span style="opacity: 0.5;">·</span><a href="#" style="color: var(--t3,rgba(255,255,255,0.45));" style-hover="color: var(--t1,#EDEDED);">Colophon</a><span style="opacity: 0.5;">·</span><a href="#" style="color: var(--t3,rgba(255,255,255,0.45));" style-hover="color: var(--t1,#EDEDED);">Twitter</a>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ink&quot;,&quot;midnight&quot;],&quot;default&quot;:&quot;ink&quot;,&quot;tsType&quot;:&quot;'ink'|'midnight'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;scrollWeight&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:8,&quot;min&quot;:1,&quot;max&quot;:10,&quot;step&quot;:1,&quot;unit&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;showFrame&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+class Component extends DCLogic {
+  state = { activeNav: 0, query: '', price: 'all', cat: 'all', sort: 'new', sortOpen: false, authOpen: false, authMode: 'login' };
+
+  cur = 0;
+  target = 0;
+  lastY = 0;
+  navHidden = false;
+  parallaxEls = [];
+
+  setRoot = (el) => { this.root = el; if (el) this.applyPalette(); };
+  setContent = (el) => { this.content = el; };
+  setNav = (el) => { this.nav = el; };
+  setHero = (el) => { this.hero = el; };
+  setBar = (el) => { this.bar = el; };
+  setBrowse = (el) => { this.browse = el; };
+  setSortRef = (el) => { this.sortRef = el; };
+  setAuthBar = (el) => { this.authBar = el; };
+
+  onSearchInput = (e) => this.setState({ query: e.target.value });
+  clearQuery = () => this.setState({ query: '' });
+  toggleSort = () => this.setState((s) => ({ sortOpen: !s.sortOpen }));
+  pickSort = (v) => this.setState({ sort: v, sortOpen: false });
+  goHome = (e) => { if (e) e.preventDefault(); this.target = 0; this.setState({ activeNav: 0, query: '', price: 'all', cat: 'all', sort: 'new', sortOpen: false }); };
+  clearFilters = () => { this.setState({ query: '', price: 'all', cat: 'all', sort: 'new', sortOpen: false, activeNav: 0 }); };
+  onDocDown = (e) => { if (this.state.sortOpen && this.sortRef && !this.sortRef.contains(e.target)) this.setState({ sortOpen: false }); };
+  stop = (e) => e.stopPropagation();
+  openLogin = () => this.setState({ authOpen: true, authMode: 'login' });
+  openSignup = () => this.setState({ authOpen: true, authMode: 'signup' });
+  closeAuth = () => this.setState({ authOpen: false });
+  setLoginMode = () => this.setState({ authMode: 'login' });
+  setSignupMode = () => this.setState({ authMode: 'signup' });
+  toggleAuthMode = () => this.setState((s) => ({ authMode: s.authMode === 'login' ? 'signup' : 'login' }));
+  submitAuth = (e) => { if (e) e.preventDefault(); this.setState({ authOpen: false }); };
+
+  scrollToBrowse() { if (this.browse) this.target = this.clamp(this.browse.offsetTop - 90); }
+
+  onCardEnter = (e) => {
+    const card = e.currentTarget;
+    card.style.transform = 'scale(1.02)';
+    const mock = card.querySelector('[data-mock]');
+    const prev = card.querySelector('[data-preview]');
+    const thumb = card.querySelector('[data-thumb]');
+    if (mock) mock.style.opacity = '0';
+    if (prev) prev.style.opacity = '1';
+    if (thumb) {
+      thumb.style.transform = 'translateY(-4px)';
+      thumb.style.boxShadow = 'inset 0 0 0 1px var(--acc-line,rgba(147,197,253,0.4)), 0 22px 60px -22px rgba(0,0,0,0.9), 0 0 0 4px var(--acc-glow,rgba(59,130,246,0.14))';
+    }
+  };
+  onCardLeave = (e) => {
+    const card = e.currentTarget;
+    card.style.transform = 'scale(1)';
+    const mock = card.querySelector('[data-mock]');
+    const prev = card.querySelector('[data-preview]');
+    const thumb = card.querySelector('[data-thumb]');
+    if (mock) mock.style.opacity = '1';
+    if (prev) prev.style.opacity = '0';
+    if (thumb) {
+      thumb.style.transform = 'translateY(0)';
+      thumb.style.boxShadow = 'inset 0 0 0 1px var(--border,rgba(255,255,255,0.08))';
+    }
+  };
+
+  get palettes() {
+    return {
+      ink: {
+        '--bg': '#14110E', '--s1': '#1C1814', '--s2': '#231E19', '--s3': '#2E2820',
+        '--border': 'rgba(240,232,220,0.09)', '--border-strong': 'rgba(240,232,220,0.17)',
+        '--t1': '#E8E1D6', '--t2': 'rgba(232,225,214,0.62)', '--t3': 'rgba(232,225,214,0.40)', '--tstrong': '#F8F3EA',
+        '--acc': '#D8703F', '--acc-hover': '#C25E30', '--acc-bg': '#2C1A10', '--acc-fg': '#F2B98C', '--acc-line': 'rgba(242,185,140,0.24)', '--acc-glow': 'rgba(216,112,63,0.16)',
+        '--glass': 'rgba(20,17,14,0.58)', '--glass-border': 'rgba(240,232,220,0.12)',
+        '--cta-bg': '#F2EADB', '--cta-fg': '#171310'
+      },
+      midnight: {
+        '--bg': '#0C0E13', '--s1': '#12151C', '--s2': '#171B24', '--s3': '#20242F',
+        '--border': 'rgba(220,226,240,0.09)', '--border-strong': 'rgba(220,226,240,0.17)',
+        '--t1': '#DFE3EC', '--t2': 'rgba(223,227,236,0.62)', '--t3': 'rgba(223,227,236,0.40)', '--tstrong': '#F3F5FA',
+        '--acc': '#7E8AE6', '--acc-hover': '#6A77DE', '--acc-bg': '#161B33', '--acc-fg': '#BFC6F4', '--acc-line': 'rgba(191,198,244,0.24)', '--acc-glow': 'rgba(126,138,230,0.16)',
+        '--glass': 'rgba(12,14,19,0.58)', '--glass-border': 'rgba(220,226,240,0.12)',
+        '--cta-bg': '#EEF0F6', '--cta-fg': '#101319'
+      }
+    };
+  }
+
+  applyPalette() {
+    if (!this.root) return;
+    const p = this.palettes[this.props.accent ?? 'ink'] || this.palettes.ink;
+    for (const k in p) this.root.style.setProperty(k, p[k]);
+    if (this.hero) {
+      const framed = this.props.showFrame ?? true;
+      this.hero.style.border = framed ? '1px solid var(--border-strong,rgba(255,255,255,0.14))' : '1px solid transparent';
+      this.hero.style.borderRadius = framed ? '30px' : '0px';
+      this.hero.style.padding = framed ? 'clamp(30px,5vw,72px)' : '0 4px';
+    }
+  }
+
+  vstyle(v, size) {
+    const base = { fontWeight: 600, letterSpacing: '-0.03em', color: 'var(--t1,#F4F4F1)', lineHeight: 1, fontSize: size + 'px' };
+    if (v === 'serif') return { ...base, fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontWeight: 400, letterSpacing: '-0.02em', fontSize: (size + 8) + 'px' };
+    if (v === 'caps') return { ...base, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: (size - 6) + 'px' };
+    if (v === 'sans-accent') return { ...base, color: 'var(--acc-fg,#93C5FD)' };
+    return base;
+  }
+
+  mk(id, title, category, brand, tier, variant, size, date) {
+    return { id, title, category, brand, tier, variant, date, isPremium: tier === 'premium', isFree: tier !== 'premium', brandStyle: this.vstyle(variant, size) };
+  }
+
+  allItems() {
+    const M = (id, t, c, b, tier, v, date) => this.mk(id, t, c, b, tier, v, 34, date);
+    return [
+      M('cue001', 'Aurora hero', 'Hero section', 'Aurora', 'free', 'serif', 14),
+      M('cue002', 'Vantage landing', 'Landing page', 'VANTAGE', 'premium', 'caps', 13),
+      M('cue003', 'Nebula portfolio', 'Portfolio', 'Nebula', 'free', 'sans-accent', 12),
+      M('cue004', 'Halo pricing', 'Pricing', 'Halo', 'premium', 'serif', 11),
+      M('cue005', 'Meridian CTA', 'CTA section', 'MERIDIAN', 'free', 'caps', 10),
+      M('cue006', 'Lumen hero', 'Hero section', 'Lumen', 'premium', 'serif', 9),
+      M('cue007', 'Atlas agency', 'Agency', 'ATLAS', 'premium', 'caps', 8),
+      M('cue008', 'Orbit CTA', 'CTA section', 'Orbit', 'free', 'sans-accent', 7),
+      M('cue009', 'Prisma hero', 'Hero section', 'Prisma', 'free', 'sans-accent', 6),
+      M('cue010', 'Continuum landing', 'Landing page', 'Continuum', 'free', 'sans', 5),
+      M('cue011', 'Pulse portfolio', 'Portfolio', 'Pulse', 'free', 'sans', 4),
+      M('cue012', 'Tier pricing', 'Pricing', 'Tier', 'free', 'caps', 3),
+      M('cue013', 'Vertex landing', 'Landing page', 'VERTEX', 'premium', 'caps', 2),
+      M('cue014', 'Quill pricing', 'Pricing', 'Quill', 'free', 'serif', 1)
+    ];
+  }
+
+  easeFor(w) { return Math.max(0.03, 0.19 - (w ?? 8) * 0.016); }
+
+  viewport() { return (this.root && this.root.clientHeight) || window.innerHeight || 700; }
+  measure() {
+    if (!this.content) return;
+    this.max = Math.max(0, this.content.scrollHeight - this.viewport());
+    if (this.target > this.max) this.target = this.max;
+  }
+  refreshParallax() { this.parallaxEls = this.content ? Array.from(this.content.querySelectorAll('[data-speed]')) : []; }
+
+  clamp(v) { return Math.max(0, Math.min(v, this.max || 0)); }
+
+  onWheel = (e) => {
+    e.preventDefault();
+    this.target = this.clamp(this.target + e.deltaY * (e.deltaMode === 1 ? 32 : 1));
+  };
+  onTouchStart = (e) => { this._ty = e.touches[0].clientY; };
+  onTouchMove = (e) => {
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    this.target = this.clamp(this.target + (this._ty - y) * 1.4);
+    this._ty = y;
+  };
+  onKey = (e) => {
+    const vp = this.viewport();
+    const map = { ArrowDown: 90, ArrowUp: -90, PageDown: vp * 0.9, PageUp: -vp * 0.9, ' ': vp * 0.9, Home: -1e9, End: 1e9 };
+    if (map[e.key] === undefined) return;
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    e.preventDefault();
+    this.target = this.clamp(this.target + map[e.key]);
+  };
+
+  tick = () => {
+    const ease = this.easeFor(this.props.scrollWeight);
+    this.cur += (this.target - this.cur) * ease;
+    if (Math.abs(this.target - this.cur) < 0.06) this.cur = this.target;
+    const c = this.cur;
+    if (this.content) this.content.style.transform = 'translate3d(0,' + (-c) + 'px,0)';
+    for (let i = 0; i < this.parallaxEls.length; i++) {
+      const el = this.parallaxEls[i];
+      const s = parseFloat(el.getAttribute('data-speed')) || 0;
+      let off = c * s;
+      if (off > 22) off = 22; else if (off < -22) off = -22;
+      el.style.transform = 'translate3d(0,' + off + 'px,0)';
+    }
+    if (this.hero) {
+      const p = Math.min(c / 640, 1);
+      this.hero.style.opacity = String(1 - p * 0.9);
+      this.hero.style.transform = 'translate3d(0,' + (c * 0.14) + 'px,0) scale(' + (1 - p * 0.045) + ')';
+    }
+    if (this.bar) this.bar.style.height = (this.max > 0 ? (c / this.max) * this.viewport() : 0) + 'px';
+    const y = c;
+    if (this.nav) {
+      if (y > this.lastY + 2 && y > 150) {
+        if (!this.navHidden) { this.navHidden = true; this.nav.style.transform = 'translate3d(-50%,-190%,0)'; if (this.authBar) { this.authBar.style.transition = 'transform .55s cubic-bezier(0.16,1,0.3,1)'; this.authBar.style.transform = 'translate3d(0,-190%,0)'; } }
+      } else if (y < this.lastY - 2 || y < 90) {
+        if (this.navHidden) { this.navHidden = false; this.nav.style.transform = 'translate3d(-50%,0,0)'; if (this.authBar) this.authBar.style.transform = 'translate3d(0,0,0)'; }
+      }
+    }
+    this.lastY = y;
+    this.raf = requestAnimationFrame(this.tick);
+  };
+
+  componentDidMount() {
+    this.applyPalette();
+    if (this.nav) {
+      this._navDone = () => { this.nav.style.animation = 'none'; this.nav.style.transform = 'translate3d(-50%,0,0)'; this.nav.style.transition = 'transform .55s cubic-bezier(0.16,1,0.3,1)'; };
+      this.nav.addEventListener('animationend', this._navDone, { once: true });
+      setTimeout(() => { if (this.nav && this.nav.style.animation !== 'none') this._navDone(); }, 1000);
+    }
+    this.target = 0; this.cur = 0; this.lastY = 0;
+    this.refreshParallax();
+    this.measure();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.measure());
+    if (typeof ResizeObserver !== 'undefined' && this.content) {
+      this._ro = new ResizeObserver(() => this.measure());
+      this._ro.observe(this.content);
+    }
+    this._onResize = () => this.measure();
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('wheel', this.onWheel, { passive: false });
+    window.addEventListener('touchstart', this.onTouchStart, { passive: true });
+    window.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    window.addEventListener('keydown', this.onKey);
+    window.addEventListener('mousedown', this.onDocDown);
+    this._t = setTimeout(() => this.measure(), 500);
+    this._t2 = setTimeout(() => this.measure(), 1400);
+    this.raf = requestAnimationFrame(this.tick);
+  }
+
+  componentDidUpdate() {
+    this.applyPalette();
+    this.refreshParallax();
+    this.measure();
+  }
+
+  componentWillUnmount() {
+    if (this.raf) cancelAnimationFrame(this.raf);
+    if (this._ro) this._ro.disconnect();
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('wheel', this.onWheel);
+    window.removeEventListener('touchstart', this.onTouchStart);
+    window.removeEventListener('touchmove', this.onTouchMove);
+    window.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('mousedown', this.onDocDown);
+    if (this._t) clearTimeout(this._t);
+    if (this._t2) clearTimeout(this._t2);
+  }
+
+  renderVals() {
+    const st = this.state;
+    const q = (st.query || '').trim().toLowerCase();
+    const price = st.price || 'all';
+    const cat = st.cat || 'all';
+    const sort = st.sort || 'new';
+    const nav = st.activeNav ?? 0;
+
+    const all = this.allItems();
+    const filtering = q !== '' || price !== 'all' || cat !== 'all' || sort !== 'new';
+
+    let results = all.filter((it) => {
+      if (price === 'free' && it.tier !== 'free') return false;
+      if (price === 'premium' && it.tier !== 'premium') return false;
+      if (cat !== 'all' && it.category !== cat) return false;
+      if (q) {
+        const hay = (it.title + ' ' + it.brand + ' ' + it.category).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    if (sort === 'az') results = results.slice().sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === 'free') results = results.slice().sort((a, b) => (a.tier === 'free' ? 0 : 1) - (b.tier === 'free' ? 0 : 1) || b.date - a.date);
+    else if (sort === 'prem') results = results.slice().sort((a, b) => (a.tier === 'premium' ? 0 : 1) - (b.tier === 'premium' ? 0 : 1) || b.date - a.date);
+    else results = results.slice().sort((a, b) => b.date - a.date);
+
+    const featured = [
+      this.mk('cue001', 'Aurora hero', 'Hero section', 'Aurora', 'free', 'serif', 48, 14),
+      this.mk('cue002', 'Vantage landing', 'Landing page', 'VANTAGE', 'premium', 'caps', 48, 13)
+    ];
+    const fresh = [all[2], all[3], all[4]];
+    const trending = [all[8], all[9], all[11]];
+
+    const navLinks = ['Home', 'Pricing', 'Contact'].map((label, i) => ({
+      label, active: i === nav,
+      onClick: () => {
+        this.setState({ activeNav: i });
+        if (i === 0) this.goHome();
+        else this.scrollToBrowse();
+      }
+    }));
+
+    const seg = (v, label) => ({
+      label,
+      onClick: () => this.setState({ price: v }),
+      style: { padding: '7px 16px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all .18s ease', border: '1px solid ' + (price === v ? 'var(--acc-line,rgba(147,197,253,0.22))' : 'transparent'), background: price === v ? 'var(--acc-bg,#0B1F3D)' : 'transparent', color: price === v ? 'var(--acc-fg,#93C5FD)' : 'var(--t2,rgba(255,255,255,0.65))' }
+    });
+    const priceOpts = [seg('all', 'All'), seg('free', 'Free'), seg('premium', 'Premium')];
+
+    const chip = (v, label) => ({
+      label,
+      onClick: () => this.setState({ cat: v }),
+      style: { padding: '7px 14px', borderRadius: '999px', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all .18s ease', border: '1px solid ' + (cat === v ? 'var(--acc-line,rgba(147,197,253,0.22))' : 'var(--border,rgba(255,255,255,0.08))'), background: cat === v ? 'var(--acc-bg,#0B1F3D)' : 'var(--s1,#111)', color: cat === v ? 'var(--acc-fg,#93C5FD)' : 'var(--t2,rgba(255,255,255,0.65))' }
+    });
+    const catOpts = [
+      chip('all', 'All'), chip('Hero section', 'Hero'), chip('Landing page', 'Landing'),
+      chip('Pricing', 'Pricing'), chip('CTA section', 'CTA'), chip('Portfolio', 'Portfolio'), chip('Agency', 'Agency')
+    ];
+
+    const resultCount = filtering ? results.length : all.length;
+    const countLabel = filtering ? (results.length === 1 ? 'result' : 'results') : 'prompts';
+    const resultsHeading = results.length === 0 ? 'Nothing here' : (results.length === 1 ? '1 prompt found' : results.length + ' prompts found');
+
+    const sortLabels = { new: 'Newest', az: 'A–Z', free: 'Free first', prem: 'Premium first' };
+    const sortItemStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', textAlign: 'left', border: 'none', borderRadius: '9px', padding: '9px 13px', fontFamily: 'inherit', fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'background .15s ease, color .15s ease', background: active ? 'var(--acc-bg,#0B1F3D)' : 'transparent', color: active ? 'var(--acc-fg,#93C5FD)' : 'var(--t2,rgba(255,255,255,0.65))' });
+    const sortOpts = [['new', 'Newest'], ['az', 'A–Z'], ['free', 'Free first'], ['prem', 'Premium first']].map(([v, l]) => ({ label: l, active: sort === v, onClick: () => this.pickSort(v), style: sortItemStyle(sort === v) }));
+    const chevStyle = { display: 'inline-flex', color: 'var(--t3,rgba(255,255,255,0.45))', transition: 'transform .2s ease', transform: st.sortOpen ? 'rotate(180deg)' : 'rotate(0deg)' };
+
+    const isSignup = st.authMode === 'signup';
+    const tabStyle = (active) => ({ flex: 1, textAlign: 'center', border: 'none', borderRadius: '999px', padding: '9px 0', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, letterSpacing: '0.02em', cursor: 'pointer', transition: 'background .18s ease, color .18s ease', background: active ? 'var(--acc-bg,#0B1F3D)' : 'transparent', color: active ? 'var(--acc-fg,#93C5FD)' : 'var(--t2,rgba(255,255,255,0.6))' });
+
+    return {
+      setRoot: this.setRoot, setBar: this.setBar, setContent: this.setContent, setNav: this.setNav, setHero: this.setHero, setBrowse: this.setBrowse, setSortRef: this.setSortRef, setAuthBar: this.setAuthBar,
+      openLogin: this.openLogin, openSignup: this.openSignup, closeAuth: this.closeAuth, setLoginMode: this.setLoginMode, setSignupMode: this.setSignupMode, toggleAuthMode: this.toggleAuthMode, submitAuth: this.submitAuth, stop: this.stop,
+      authOpen: !!st.authOpen, isSignup, isLogin: !isSignup,
+      authTitle: isSignup ? 'Create your account' : 'Welcome back',
+      authSub: isSignup ? 'Start copying production-grade prompts in seconds.' : 'Log in to access your saved prompts and collections.',
+      authCta: isSignup ? 'Create account' : 'Log in',
+      loginTabStyle: tabStyle(!isSignup), signupTabStyle: tabStyle(isSignup),
+      switchPrompt: isSignup ? 'Already have an account?' : 'New to Cue?',
+      switchAction: isSignup ? 'Log in' : 'Create one',
+      onCardEnter: this.onCardEnter, onCardLeave: this.onCardLeave,
+      onSearchInput: this.onSearchInput, clearQuery: this.clearQuery, toggleSort: this.toggleSort, goHome: this.goHome, clearFilters: this.clearFilters,
+      navLinks, priceOpts, catOpts,
+      sortOpts, sortLabel: sortLabels[sort] || 'Newest', sortOpen: !!st.sortOpen, chevStyle,
+      query: st.query || '', hasQuery: q !== '',
+      browsing: !filtering, filtering, hasResults: filtering && results.length > 0, noResults: filtering && results.length === 0,
+      results, resultCount, countLabel, resultsHeading,
+      featured, fresh, trending
+    };
+  }
+}
+</script>
+</body>
+</html>

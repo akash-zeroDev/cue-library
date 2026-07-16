@@ -78,7 +78,15 @@ export function AppProvider({ children }) {
 
   const addDraft = useCallback(async (item) => {
     const created = await backend.create(item)
-    setDrafts((prev) => [...prev, created])
+    setDrafts((prev) => {
+      const idx = prev.findIndex(p => p.id === created.id)
+      if (idx >= 0) {
+        const next = [...prev]
+        next[idx] = created
+        return next
+      }
+      return [...prev, created]
+    })
     return created
   }, [])
   const removeDraft = useCallback(async (id) => {

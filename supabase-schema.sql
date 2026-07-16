@@ -17,6 +17,7 @@ create table if not exists public.prompts (
   thumb_src   text,
   hover_src   text,
   prompt      text        not null,
+  status      text        not null default 'published' check (status in ('published', 'draft')),
   created_at  timestamptz not null default now()
 );
 

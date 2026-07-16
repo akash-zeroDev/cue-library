@@ -1,0 +1,53 @@
+[
+  {
+    "id": "cue001",
+    "title": "This is title",
+    "category": "This is category",
+    "section": "Hero",
+    "tier": "free",
+    "rail": "fresh",
+    "brand": "This is text ",
+    "variant": "sans",
+    "stack": [
+      "Bolt",
+      "v0"
+    ],
+    "hoverSrc": "https://fuslrenvonapcldxkgmm.supabase.co/storage/v1/object/public/cue-media/1784125848335-gba3et.mov",
+    "price": 0,
+    "status": "published"
+  },
+  {
+    "id": "cue001",
+    "title": "This is title",
+    "category": "This is category",
+    "section": "Hero",
+    "tier": "premium",
+    "rail": "fresh",
+    "brand": "This is prmpt ",
+    "variant": "sans",
+    "stack": [
+      "Bolt",
+      "v0"
+    ],
+    "hoverSrc": "https://fuslrenvonapcldxkgmm.supabase.co/storage/v1/object/public/cue-media/1784131681918-2j38kl.mov",
+    "price": 99,
+    "status": "published"
+  },
+  {
+    "id": "cue002",
+    "title": "aaa",
+    "category": "bbb",
+    "section": "Hero",
+    "tier": "premium",
+    "rail": "fresh",
+    "brand": "cc",
+    "variant": "sans",
+    "stack": [
+      "Bolt",
+      "v0"
+    ],
+    "hoverSrc": "https://fuslrenvonapcldxkgmm.supabase.co/storage/v1/object/public/cue-media/1784131884670-054y6z.mp4",
+    "price": 99,
+    "status": "draft"
+  }
+]

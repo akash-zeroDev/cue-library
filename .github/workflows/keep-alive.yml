@@ -1,0 +1,28 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Error: Secrets SUPABASE_URL and SUPABASE_ANON_KEY are not set."
+            exit 1
+          fi
+          
+          # Ping the REST API by requesting 1 row from the prompts table.
+          # This registers as database activity and prevents auto-pause on free tiers.
+          curl -sS -o /dev/null -w "%{http_code}" -X GET "${SUPABASE_URL}/rest/v1/prompts?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"
+          
+          echo -e "\nSuccessfully pinged Supabase!"
