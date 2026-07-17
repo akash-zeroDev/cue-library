@@ -22,25 +22,42 @@ serve(async (req) => {
       "webhook-signature": signature,
     }) as any;
 
-    if (event.type === 'payment.succeeded') {
+      if (event.type === 'payment.succeeded' || event.type === 'subscription.active') {
       const payment = event.data;
       const userId = payment.metadata?.user_id;
       const promptId = payment.metadata?.prompt_id;
+      const type = payment.metadata?.type;
 
-      if (userId && promptId) {
+      if (userId) {
         const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-        // Use SERVICE ROLE KEY to bypass RLS for inserts
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         const supabase = createClient(supabaseUrl, supabaseKey)
 
-        const { error } = await supabase.from('purchases').upsert({
-          user_id: userId,
-          prompt_id: promptId
-        }, { onConflict: 'user_id, prompt_id' })
+        if (type === 'subscription') {
+          // Handle subscription purchase
+          const { error } = await supabase.from('user_subscriptions').upsert({
+            user_id: userId,
+            tier: 'pro',
+            status: 'active',
+            subscription_id: payment.subscription_id || payment.id,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' })
 
-        if (error) {
-          console.error('Failed to grant access:', error)
-          return new Response(JSON.stringify({ error: 'Database insert failed' }), { status: 500 })
+          if (error) {
+            console.error('Failed to grant subscription:', error)
+            return new Response(JSON.stringify({ error: 'Database insert failed' }), { status: 500 })
+          }
+        } else if (promptId) {
+          // Handle individual prompt purchase
+          const { error } = await supabase.from('purchases').upsert({
+            user_id: userId,
+            prompt_id: promptId
+          }, { onConflict: 'user_id, prompt_id' })
+
+          if (error) {
+            console.error('Failed to grant access:', error)
+            return new Response(JSON.stringify({ error: 'Database insert failed' }), { status: 500 })
+          }
         }
       }
     }

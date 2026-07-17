@@ -71,7 +71,11 @@ export default function Card({ item }) {
             {isPremium ? 'Premium' : 'Copy'}
           </button>
         </div>
-        <div className="card-cat">{item.category}</div>
+        <div className="card-cat" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {item.category && item.category.split(',').map((cat, i) => (
+            <span key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '4px' }}>{cat.trim()}</span>
+          ))}
+        </div>
       </div>
     </article>
   )

@@ -1,11 +1,15 @@
 import React from 'react';
 
 export default function TodaysPick({ allItems, renderCard }) {
-  // Filter for featured items, fallback to top 6 newest if no featured items exist
-  let picks = allItems.filter(item => item.rail === 'featured');
-  if (picks.length === 0) {
-    picks = allItems.slice(0, 6);
-  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  let picks = allItems.filter(item => {
+    if (!item.created_at) return false;
+    const itemDate = new Date(item.created_at);
+    itemDate.setHours(0, 0, 0, 0);
+    return itemDate.getTime() === today.getTime();
+  });
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '140px clamp(20px,4vw,56px) 80px', minHeight: '100vh', color: '#fff', animation: 'fadeUp .4s ease' }}>

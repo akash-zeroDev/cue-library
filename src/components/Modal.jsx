@@ -142,7 +142,11 @@ export default function Modal({ item, onClose, showToast }) {
           <div style={{ width: '380px', display: 'flex', flexDirection: 'column', padding: '40px', background: 'rgba(255,255,255,0.02)' }}>
             <h2 id="modal-title" style={{ fontSize: '28px', fontWeight: 600, color: '#fff', letterSpacing: '-0.02em', marginBottom: '12px' }}>{item.title}</h2>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>
-              <span style={{ background: 'rgba(59,130,246,0.15)', color: '#93C5FD', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', border: '1px solid rgba(59,130,246,0.3)' }}>{item.category}</span>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {item.category && item.category.split(',').map((cat, i) => (
+                  <span key={i} style={{ background: 'rgba(59,130,246,0.15)', color: '#93C5FD', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', border: '1px solid rgba(59,130,246,0.3)' }}>{cat.trim()}</span>
+                ))}
+              </div>
               <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{item.section}</span>
             </div>
 

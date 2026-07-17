@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { copyToClipboard } from '../hooks/useClipboard.js'
 import { backend, backendMode } from '../lib/backend.js'
@@ -64,7 +64,7 @@ export default function Admin() {
   const videoRef = useRef(null)
 
   const [form, setForm] = useState(() => ({
-    id: nextId(allPrompts),
+    id: 'cue001', // Will be set by effect once data loads
     title: '',
     category: '',
     section: 'Hero',
@@ -77,10 +77,18 @@ export default function Admin() {
     hoverSrc: '',
     prompt: '',
   }))
+  const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(null) // 'img' | 'video' | null
   const [touched, setTouched] = useState({})
   const markTouched = (k) => setTouched((t) => ({ ...t, [k]: true }))
+
+  // Ensure new prompts get the correct next ID once data loads from Supabase
+  useEffect(() => {
+    if (!isEditing) {
+      setForm(f => ({ ...f, id: nextId(allPrompts) }))
+    }
+  }, [allPrompts, isEditing])
 
   const isAdmin = isSignedIn && ['akashkumar7653099@gmail.com', 'aloksivastava1025@gmail.com'].includes(user?.primaryEmailAddress?.emailAddress);
 
@@ -174,6 +182,7 @@ export default function Admin() {
     try {
       await addDraft({ ...form, status })
       showToast(`${status === 'published' ? 'Published' : 'Saved draft'} "${form.title}"`)
+      setIsEditing(false)
       setForm({
         id: nextId([...allPrompts, form]),
         title: '',
@@ -222,6 +231,7 @@ export default function Admin() {
         const content = await backend.getPromptContent(p.id)
         promptContent = content || ''
       }
+      setIsEditing(true)
       setForm({ ...p, prompt: promptContent })
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
@@ -273,8 +283,8 @@ export default function Admin() {
             <input style={{...inputStyle, borderColor: errFor('title') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.title} onChange={(e) => set({ title: e.target.value })} onBlur={() => markTouched('title')} placeholder="Aurora hero" />
           </div>
           <div style={fieldStyle}>
-            <label style={labelStyle}>Category / Tag <span style={{color: '#ef4444'}}>*</span></label>
-            <input style={{...inputStyle, borderColor: errFor('category') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.category} onChange={(e) => set({ category: e.target.value })} onBlur={() => markTouched('category')} placeholder="e.g. Hero, Landing, Web3" />
+            <label style={labelStyle}>Category Tags <span style={{ textTransform: 'none', opacity: 0.6 }}>(comma-separated)</span></label>
+            <input style={{...inputStyle, borderColor: errFor('category') ? '#ef4444' : 'rgba(255,255,255,0.1)'}} value={form.category} onChange={(e) => set({ category: e.target.value })} onBlur={() => markTouched('category')} placeholder="e.g. Navigation, Headers, Dark Mode" />
           </div>
         </div>
 
