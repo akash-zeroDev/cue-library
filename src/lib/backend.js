@@ -67,9 +67,9 @@ const supabaseAdapter = {
     return data.map(p => p.prompt_id)
   },
   
-  async createCheckoutSession(promptId) {
+  async createCheckoutSession(promptId, customerEmail, customerName) {
     const { data, error } = await supabase.functions.invoke('create-checkout', {
-      body: { prompt_id: promptId }
+      body: { prompt_id: promptId, customerEmail, customerName }
     })
     
     // Attempt to extract the real error message if it exists in the response

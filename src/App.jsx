@@ -16,6 +16,7 @@ function MainApp() {
   const [cat, setCat] = useState('all');
   const [sort, setSort] = useState('new');
   const [sortOpen, setSortOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
   const { user, isSignedIn } = useUser();
@@ -35,6 +36,7 @@ function MainApp() {
   const barRef = useRef(null);
   const browseRef = useRef(null);
   const sortRef = useRef(null);
+  const catRef = useRef(null);
   const authBarRef = useRef(null);
 
   const scrollState = useRef({
@@ -49,17 +51,20 @@ function MainApp() {
   const onSearchInput = (e) => setQuery(e.target.value);
   const clearQuery = () => setQuery('');
   const toggleSort = () => setSortOpen((s) => !s);
+  const toggleCat = () => setCatOpen((s) => !s);
   const pickSort = (v) => { setSort(v); setSortOpen(false); };
+  const pickCat = (v) => { setCat(v); setCatOpen(false); };
   const goHome = (e) => {
     if (e) e.preventDefault();
     scrollState.current.target = 0;
-    setActiveNav(0); setQuery(''); setPrice('all'); setCat('all'); setSort('new'); setSortOpen(false);
+    setActiveNav(0); setQuery(''); setPrice('all'); setCat('all'); setSort('new'); setSortOpen(false); setCatOpen(false);
   };
-  const clearFilters = () => { setQuery(''); setPrice('all'); setCat('all'); setSort('new'); setSortOpen(false); setActiveNav(0); };
+  const clearFilters = () => { setQuery(''); setPrice('all'); setCat('all'); setSort('new'); setSortOpen(false); setCatOpen(false); setActiveNav(0); };
   
   const onDocDown = useCallback((e) => {
     if (sortOpen && sortRef.current && !sortRef.current.contains(e.target)) setSortOpen(false);
-  }, [sortOpen]);
+    if (catOpen && catRef.current && !catRef.current.contains(e.target)) setCatOpen(false);
+  }, [sortOpen, catOpen]);
 
   useEffect(() => {
     window.addEventListener('mousedown', onDocDown);
@@ -307,7 +312,7 @@ function MainApp() {
   let results = allItems.filter((it) => {
     if (price === 'free' && it.tier !== 'free') return false;
     if (price === 'premium' && it.tier !== 'premium') return false;
-    if (cat !== 'all' && it.category !== cat) return false;
+    if (cat !== 'all' && !(it.category || '').toLowerCase().split(',').map(s=>s.trim()).includes(cat.toLowerCase())) return false;
     if (q) {
       const hay = (it.title + ' ' + it.brand + ' ' + it.category).toLowerCase();
       if (!hay.includes(q)) return false;
@@ -336,21 +341,18 @@ function MainApp() {
   });
   const priceOpts = [seg('all', 'All'), seg('free', 'Free'), seg('premium', 'Premium')];
 
-  const chip = (v, label) => ({
-    label,
-    onClick: () => setCat(v),
-    style: { padding: '7px 14px', borderRadius: '999px', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all .18s ease', border: '1px solid ' + (cat === v ? 'var(--acc-line,rgba(147,197,253,0.22))' : 'var(--border,rgba(255,255,255,0.08))'), background: cat === v ? 'var(--acc-bg,#0B1F3D)' : 'var(--s1,#111)', color: cat === v ? 'var(--acc-fg,#93C5FD)' : 'var(--t2,rgba(255,255,255,0.65))' }
-  });
+  const sortItemStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', textAlign: 'left', border: 'none', borderRadius: '9px', padding: '9px 13px', fontFamily: 'inherit', fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'background .15s ease, color .15s ease', background: active ? 'var(--acc-bg,#0B1F3D)' : 'transparent', color: active ? 'var(--acc-fg,#93C5FD)' : 'var(--t2,rgba(255,255,255,0.65))' });
   
-  const uniqueCats = Array.from(new Set(allItems.map(it => it.category).filter(Boolean))).sort();
-  const catOpts = [chip('all', 'All'), ...uniqueCats.map(c => chip(c, c))];
+  const allTags = allItems.flatMap(it => (it.category || '').split(',').map(s => s.trim()).filter(Boolean));
+  const uniqueCats = Array.from(new Set(allTags)).sort();
+  const catOpts = [['all', 'All Tags'], ...uniqueCats.map(c => [c, c])].map(([v, l]) => ({ label: l, active: cat === v, onClick: () => pickCat(v), style: sortItemStyle(cat === v) }));
+  const catChevStyle = { display: 'inline-flex', color: 'var(--t3,rgba(255,255,255,0.45))', transition: 'transform .2s ease', transform: catOpen ? 'rotate(180deg)' : 'rotate(0deg)' };
 
   const resultCount = filtering ? results.length : allItems.length;
   const countLabel = filtering ? (results.length === 1 ? 'result' : 'results') : 'prompts';
   const resultsHeading = results.length === 0 ? 'Nothing here' : (results.length === 1 ? '1 prompt found' : results.length + ' prompts found');
 
   const sortLabels = { new: 'Newest', az: 'A–Z', free: 'Free first', prem: 'Premium first' };
-  const sortItemStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', textAlign: 'left', border: 'none', borderRadius: '9px', padding: '9px 13px', fontFamily: 'inherit', fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'background .15s ease, color .15s ease', background: active ? 'var(--acc-bg,#0B1F3D)' : 'transparent', color: active ? 'var(--acc-fg,#93C5FD)' : 'var(--t2,rgba(255,255,255,0.65))' });
   const sortOpts = [['new', 'Newest'], ['az', 'A–Z'], ['free', 'Free first'], ['prem', 'Premium first']].map(([v, l]) => ({ label: l, active: sort === v, onClick: () => pickSort(v), style: sortItemStyle(sort === v) }));
   const chevStyle = { display: 'inline-flex', color: 'var(--t3,rgba(255,255,255,0.45))', transition: 'transform .2s ease', transform: sortOpen ? 'rotate(180deg)' : 'rotate(0deg)' };
 
@@ -567,7 +569,18 @@ function MainApp() {
               <span style={{ fontSize: '10.5px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--acc-fg,#93C5FD)', fontWeight: 600 }}>{resultCount} {countLabel}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              {catOpts.map((c, i) => <button key={i} className="cat-opt" onClick={c.onClick} style={c.style}>{c.label}</button>)}
+              <div ref={catRef} style={{ position: 'relative', flexShrink: 0 }}>
+                <button onClick={toggleCat} aria-label="Filter by tag" className="hover-border-strong-14" style={{ display: 'inline-flex', alignItems: 'center', gap: '9px', background: 'var(--s1,#111)', color: 'var(--t1,#EDEDED)', border: '1px solid var(--border,rgba(255,255,255,0.08))', borderRadius: '999px', padding: '10px 15px', fontFamily: 'inherit', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', transition: 'border-color .18s ease' }}>
+                  <span style={{ color: 'var(--t3,rgba(255,255,255,0.45))' }}>Tag:</span>{cat === 'all' ? 'All' : cat}<span style={catChevStyle}><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: '10px', height: '10px', display: 'block' }}><path d="M3 4.5L6 7.5L9 4.5"></path></svg></span>
+                </button>
+                {catOpen && (
+                  <div className="custom-scrollbar" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 60, minWidth: '200px', maxHeight: '300px', overflowY: 'auto', background: 'var(--s2,#171717)', border: '1px solid var(--border-strong,rgba(255,255,255,0.14))', borderRadius: '14px', padding: '6px', boxShadow: '0 22px 54px -18px rgba(0,0,0,0.85)', animation: 'fadeUp .18s ease both' }}>
+                    {catOpts.map((o, i) => (
+                      <button key={i} className="sort-opt" onClick={o.onClick} style={o.style}><span>{o.label}</span>{o.active && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: '13px', height: '13px', flexShrink: 0 }}><path d="M20 6L9 17l-5-5"></path></svg>}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

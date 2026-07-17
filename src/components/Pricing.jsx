@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 
 export default function Pricing() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { user, isSignedIn, isLoaded } = useUser();
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -24,13 +24,16 @@ export default function Pricing() {
         clerkToken = await window.Clerk.session.getToken({ template: 'supabase' });
       }
 
+      const customerEmail = user?.primaryEmailAddress?.emailAddress || '';
+      const customerName = user?.fullName || user?.firstName || '';
+
       const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${clerkToken}`
         },
-        body: JSON.stringify({ plan: planType })
+        body: JSON.stringify({ plan: planType, customerEmail, customerName })
       });
 
       const data = await response.json();

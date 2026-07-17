@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   
   try {
-    const { plan } = await req.json()
+    const { plan, customerEmail, customerName } = await req.json()
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('No authorization header')
     
@@ -31,6 +31,10 @@ serve(async (req) => {
     if (!productId) throw new Error(`Product ID for ${plan} plan not configured in environment variables`)
 
     const requestBody = {
+      customer: {
+        email: customerEmail || 'customer@cue.library',
+        name: customerName || 'Cue User'
+      },
       product_cart: [
         {
           product_id: productId,
@@ -50,8 +54,8 @@ serve(async (req) => {
     const isLive = Deno.env.get('DODO_ENV') === 'live';
     const baseUrl = isLive ? 'https://live.dodopayments.com' : 'https://test.dodopayments.com';
     
-    // Dodo Payments new API uses /payments for checkout links too
-    const response = await fetch(`${baseUrl}/payments`, {
+    // Dodo Payments uses /checkouts for hosted checkout sessions
+    const response = await fetch(`${baseUrl}/checkouts`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${dodoApiKey}`,
@@ -63,7 +67,7 @@ serve(async (req) => {
     if (!response.ok) {
       const errText = await response.text();
       console.error('Dodo error:', errText);
-      throw new Error('Failed to create payment session with Dodo Payments');
+      throw new Error(`Dodo API Error: ${errText}`);
     }
 
     const sessionData = await response.json();

@@ -29,7 +29,7 @@ function buildDeepLink(target, prompt) {
 }
 
 export default function Modal({ item, onClose, showToast }) {
-  const { isSignedIn } = useUser()
+  const { user, isSignedIn } = useUser()
   const clerk = useClerk()
   
   useEffect(() => {
@@ -77,7 +77,9 @@ export default function Modal({ item, onClose, showToast }) {
     
     if (showToast) showToast('Redirecting to secure checkout...')
     try {
-      const url = await backend.createCheckoutSession(item.id)
+      const customerEmail = user?.primaryEmailAddress?.emailAddress || '';
+      const customerName = user?.fullName || user?.firstName || '';
+      const url = await backend.createCheckoutSession(item.id, customerEmail, customerName)
       window.location.href = url
     } catch (err) {
       if (showToast) showToast('Checkout failed: ' + err.message)
