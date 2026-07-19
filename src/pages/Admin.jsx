@@ -348,18 +348,22 @@ export default function Admin() {
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }}></div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Video / GIF Preview (plays on hover/click) <span style={{opacity: 0.5, fontWeight: 400, textTransform: 'none'}}>— max {formatMB(videoCap)}</span></label>
+          <label style={labelStyle}>Video / Image Preview (plays on hover/click) <span style={{opacity: 0.5, fontWeight: 400, textTransform: 'none'}}>— max {formatMB(videoCap)}</span></label>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <button type="button" style={btnStyle} onClick={() => videoRef.current?.click()} disabled={uploading === 'video'}>{uploading === 'video' ? 'Uploading…' : 'Upload video / GIF'}</button>
-            <input ref={videoRef} type="file" accept="video/*,image/gif" onChange={onPickVideo} style={{ display: 'none' }} />
+            <button type="button" style={btnStyle} onClick={() => videoRef.current?.click()} disabled={uploading === 'video'}>{uploading === 'video' ? 'Uploading…' : 'Upload video / image'}</button>
+            <input ref={videoRef} type="file" accept="video/*,image/*" onChange={onPickVideo} style={{ display: 'none' }} />
             <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>or</span>
             <input style={{...inputStyle, flex: 1}} placeholder="paste video/GIF URL (https://…)" value={videoIsData ? '' : form.hoverSrc} onChange={(e) => set({ hoverSrc: e.target.value })} disabled={videoIsData} />
             {form.hoverSrc && <button type="button" style={{...btnStyle, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)'}} onClick={clearVideo}>Clear</button>}
           </div>
           {form.hoverSrc && (
             <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', display: 'inline-flex', flexDirection: 'column', gap: '8px' }}>
-              <video src={form.hoverSrc} muted loop autoPlay playsInline style={{ height: '120px', borderRadius: '8px' }} />
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{videoIsData ? 'Uploaded (base64)' : 'Hosted URL'} · plays on hover, muted, looping</span>
+              {form.hoverSrc.match(/^data:image\//) || form.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
+                <img src={form.hoverSrc} style={{ height: '120px', borderRadius: '8px', objectFit: 'contain' }} alt="Preview" />
+              ) : (
+                <video src={form.hoverSrc} muted loop autoPlay playsInline style={{ height: '120px', borderRadius: '8px' }} />
+              )}
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{videoIsData ? 'Uploaded (base64)' : 'Hosted URL'} · plays on hover (muted, looping for video)</span>
             </div>
           )}
         </div>
