@@ -12,7 +12,7 @@ export default function TodaysPick({ allItems, renderCard }) {
   });
 
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '140px clamp(20px,4vw,56px) 80px', minHeight: '100vh', color: '#fff', animation: 'fadeUp .4s ease' }}>
+    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '100px clamp(20px,4vw,56px) 80px', minHeight: '100vh', color: '#fff', animation: 'fadeUp .4s ease' }}>
       <h1 style={{ fontSize: '42px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '12px' }}>
         Today's Picks
       </h1>
@@ -21,7 +21,7 @@ export default function TodaysPick({ allItems, renderCard }) {
       </p>
 
       {picks.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', columnGap: '24px', rowGap: '44px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', columnGap: '24px', rowGap: '44px', alignItems: 'start' }}>
           {picks.map(item => renderCard(item))}
         </div>
       ) : (

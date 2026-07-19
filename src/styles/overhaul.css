@@ -30,3 +30,53 @@ select option { background: #171717; color: #EDEDED; }
 .focus-border-acc:focus { border-color: var(--acc,#3B82F6) !important; }
 .hover-border-strong-16:hover { border-color: var(--border-strong,rgba(255,255,255,0.16)) !important; }
 .hover-border-strong-14:hover { border-color: var(--border-strong,rgba(255,255,255,0.14)) !important; }
+
+@media (max-width: 768px) {
+  .app-modal-container {
+    width: 95% !important;
+    max-height: 95vh !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+  .modal-content-wrapper {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+  .modal-preview-area {
+    min-height: 280px !important;
+    height: 280px !important;
+    flex: none !important;
+    background: #000 !important;
+  }
+  .modal-media {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    border-top-left-radius: 24px !important;
+    border-top-right-radius: 24px !important;
+  }
+  .modal-close-btn {
+    top: 12px !important;
+    right: 12px !important;
+  }
+  .modal-details-area {
+    width: 100% !important;
+    padding: 24px !important;
+    height: auto !important;
+  }
+  .app-nav {
+    top: auto !important;
+    bottom: 24px !important;
+    transform: translate3d(-50%, 0, 0) !important;
+  }
+  .app-auth {
+    top: 22px !important;
+    right: 16px !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
+  .app-admin {
+    top: 76px !important;
+    left: 50% !important;
+    transform: translate3d(-50%, 0, 0) !important;
+  }
+}

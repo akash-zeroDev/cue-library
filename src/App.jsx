@@ -95,7 +95,13 @@ function MainApp() {
     scrollState.current.parallaxEls = contentRef.current ? Array.from(contentRef.current.querySelectorAll('[data-speed]')) : [];
   }, []);
 
+  const isModalOpenRef = useRef(false);
+  useEffect(() => {
+    isModalOpenRef.current = !!selectedItem;
+  }, [selectedItem]);
+
   const onWheel = useCallback((e) => {
+    if (isModalOpenRef.current) return;
     e.preventDefault();
     scrollState.current.target = clamp(scrollState.current.target + e.deltaY * (e.deltaMode === 1 ? 32 : 1));
   }, [clamp]);
@@ -103,13 +109,15 @@ function MainApp() {
   const _ty = useRef(0);
   const onTouchStart = useCallback((e) => { _ty.current = e.touches[0].clientY; }, []);
   const onTouchMove = useCallback((e) => {
+    if (isModalOpenRef.current) return;
     e.preventDefault();
     const y = e.touches[0].clientY;
-    scrollState.current.target = clamp(scrollState.current.target + (_ty.current - y) * 1.4);
+    scrollState.current.target = clamp(scrollState.current.target + (_ty.current - y) * 2.8);
     _ty.current = y;
   }, [clamp]);
 
   const onKey = useCallback((e) => {
+    if (isModalOpenRef.current) return;
     const vp = viewport();
     const map = { ArrowDown: 90, ArrowUp: -90, PageDown: vp * 0.9, PageUp: -vp * 0.9, ' ': vp * 0.9, Home: -1e9, End: 1e9 };
     if (map[e.key] === undefined) return;
@@ -375,16 +383,27 @@ function MainApp() {
     
     return (
       <article ref={ref} onClick={() => setSelectedItem(item)} onMouseEnter={onCardEnter} onMouseLeave={onCardLeave} style={{ display: 'flex', flexDirection: 'column', gap: '16px', cursor: 'pointer', transition: 'transform .5s cubic-bezier(0.16,1,0.3,1)', transform: 'scale(1)' }}>
-        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '16 / 10', borderRadius: '24px', overflow: 'hidden', background: '#0a0a0a', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 30px -10px rgba(0,0,0,0.5)', transition: 'box-shadow .5s cubic-bezier(0.16,1,0.3,1), transform .5s cubic-bezier(0.16,1,0.3,1)' }}>
-          {!item.hoverSrc && (
+        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '16 / 9', borderRadius: '24px', overflow: 'hidden', background: '#0a0a0a', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 30px -10px rgba(0,0,0,0.5)', transition: 'box-shadow .5s cubic-bezier(0.16,1,0.3,1), transform .5s cubic-bezier(0.16,1,0.3,1)' }}>
+          {!item.hoverSrc && !item.thumbSrc && (
             <div data-mock="true" style={{ position: 'absolute', inset: 0, transition: 'opacity .45s ease', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '28px', background: `radial-gradient(circle at 20% 30%, hsla(${hue}, 60%, 25%, 0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, hsla(${hue + 40}, 60%, 20%, 0.15) 0%, transparent 60%)` }}>
               <div style={{...item.brandStyle, textShadow: '0 4px 12px rgba(0,0,0,0.5)'}}>{item.brand}</div>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '40%', background: 'linear-gradient(to bottom, rgba(255,255,255,0.03), transparent)', pointerEvents: 'none' }}></div>
             </div>
           )}
+          {item.thumbSrc && (
+            <div data-mock="true" style={{ position: 'absolute', inset: 0, transition: 'opacity .45s ease', background: '#000' }}>
+              <img src={item.thumbSrc} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} />
+            </div>
+          )}
           <div data-preview="true" data-video={item.hoverSrc ? "true" : undefined} style={{ position: 'absolute', inset: 0, opacity: item.hoverSrc ? 1 : 0, transition: 'opacity .5s ease', background: 'var(--s2,#171717)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {item.hoverSrc ? (
-              inView ? <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null
+              inView ? (
+                item.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
+                  <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} alt={item.title} />
+                ) : (
+                  <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} />
+                )
+              ) : null
             ) : (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '15px 18px', borderBottom: '1px solid var(--border,rgba(255,255,255,0.08))', background: 'rgba(255,255,255,0.02)' }}>
@@ -434,7 +453,7 @@ function MainApp() {
       <div ref={barRef} style={{ position: 'fixed', top: 0, right: 0, width: '2px', height: 0, background: 'var(--acc,#3B82F6)', opacity: 0.55, zIndex: 130, pointerEvents: 'none' }}></div>
 
       {!selectedItem && (
-        <nav ref={navRef} aria-label="Primary" style={{ position: 'fixed', top: '22px', left: '50%', transform: 'translate3d(-50%,0,0)', zIndex: 120, display: 'flex', alignItems: 'center', gap: '4px', padding: '9px 24px', borderRadius: '999px', background: 'var(--glass,rgba(10,10,10,0.55))', WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)', border: '1px solid var(--glass-border,rgba(255,255,255,0.10))', boxShadow: '0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)', animation: 'navIn .85s cubic-bezier(0.16,1,0.3,1) both' }}>
+        <nav className="app-nav" ref={navRef} aria-label="Primary" style={{ position: 'fixed', top: '22px', left: '50%', transform: 'translate3d(-50%,0,0)', zIndex: 120, display: 'flex', alignItems: 'center', gap: '4px', padding: '9px 24px', borderRadius: '999px', background: 'var(--glass,rgba(10,10,10,0.55))', WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)', border: '1px solid var(--glass-border,rgba(255,255,255,0.10))', boxShadow: '0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)', animation: 'navIn .85s cubic-bezier(0.16,1,0.3,1) both' }}>
           <a href="#" onClick={goHome} className="hover-color-tstrong" style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.045em', color: 'var(--tstrong,#fff)', lineHeight: 1, transition: 'color .18s ease' }}>cue<span style={{ color: 'var(--acc,#3B82F6)' }}>·</span></a>
           <span style={{ width: '1px', height: '20px', background: 'var(--glass-border,rgba(255,255,255,0.12))', margin: '0 16px 0 12px' }}></span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
@@ -449,14 +468,14 @@ function MainApp() {
       )}
 
       {!selectedItem && isAdmin && (
-        <button onClick={() => window.location.hash = '#/admin'} className="hover-border-strong-14" style={{ position: 'fixed', top: '22px', left: 'clamp(16px,3vw,32px)', zIndex: 121, display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '999px', background: 'var(--glass,rgba(10,10,10,0.55))', WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)', border: '1px solid var(--glass-border,rgba(255,255,255,0.10))', boxShadow: '0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)', color: 'var(--tstrong,#fff)', fontSize: '13px', fontWeight: 600, letterSpacing: '0.01em', cursor: 'pointer', transition: 'all 0.2s ease', animation: 'fadeUp .7s cubic-bezier(0.16,1,0.3,1) both' }}>
+        <button onClick={() => window.location.hash = '#/admin'} className="app-admin hover-border-strong-14" style={{ position: 'fixed', top: '22px', left: 'clamp(16px,3vw,32px)', zIndex: 121, display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '999px', background: 'var(--glass,rgba(10,10,10,0.55))', WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)', border: '1px solid var(--glass-border,rgba(255,255,255,0.10))', boxShadow: '0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)', color: 'var(--tstrong,#fff)', fontSize: '13px', fontWeight: 600, letterSpacing: '0.01em', cursor: 'pointer', transition: 'all 0.2s ease', animation: 'fadeUp .7s cubic-bezier(0.16,1,0.3,1) both' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
           Admin Panel
         </button>
       )}
 
       {!selectedItem && (
-        <div ref={authBarRef} style={{ position: 'fixed', top: '22px', right: 'clamp(16px,3vw,32px)', zIndex: 121, display: 'flex', alignItems: 'center', gap: '6px', padding: isSignedIn ? '6px 14px 6px 6px' : '8px 8px 8px 10px', borderRadius: '999px', background: 'var(--glass,rgba(10,10,10,0.55))', WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)', border: '1px solid var(--glass-border,rgba(255,255,255,0.10))', boxShadow: '0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)', animation: 'fadeUp .7s cubic-bezier(0.16,1,0.3,1) both' }}>
+        <div className="app-auth" ref={authBarRef} style={{ position: 'fixed', top: '22px', right: 'clamp(16px,3vw,32px)', zIndex: 121, display: 'flex', alignItems: 'center', gap: '6px', padding: isSignedIn ? '6px 14px 6px 6px' : '8px 8px 8px 10px', borderRadius: '999px', background: 'var(--glass,rgba(10,10,10,0.55))', WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)', border: '1px solid var(--glass-border,rgba(255,255,255,0.10))', boxShadow: '0 10px 34px -10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)', animation: 'fadeUp .7s cubic-bezier(0.16,1,0.3,1) both' }}>
           {!isSignedIn ? (
             <>
               <SignInButton mode="modal">
@@ -499,7 +518,7 @@ function MainApp() {
             
 
             
-            <h1 style={{ position: 'relative', fontFamily: "'Bricolage Grotesque', 'Hanken Grotesk', sans-serif", fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 0.85, textTransform: 'uppercase', color: 'var(--tstrong,#fff)', fontSize: 'clamp(64px, 12vw, 190px)', textWrap: 'balance', zIndex: 2 }}>
+            <h1 style={{ position: 'relative', fontFamily: "'Bricolage Grotesque', 'Hanken Grotesk', sans-serif", fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 0.85, textTransform: 'uppercase', color: 'var(--tstrong,#fff)', fontSize: 'clamp(42px, 12vw, 190px)', textWrap: 'balance', zIndex: 2 }}>
               <span style={{ display: 'block', overflow: 'hidden', paddingBottom: '0.08em' }}>
                 <span style={{ display: 'inline-block', marginRight: '0.14em', animation: 'heroRise 1.1s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '0.05s' }}>SHIP</span>
                 <span style={{ display: 'inline-block', marginRight: '0.14em', fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontWeight: 400, textTransform: 'none', color: 'var(--t2,rgba(255,255,255,0.7))', letterSpacing: '-0.02em', animation: 'heroRise 1.1s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '0.15s' }}>your</span>
@@ -530,7 +549,7 @@ function MainApp() {
               </button>
             </div>
             
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '24px', marginTop: 'clamp(40px,6vw,80px)', display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', animation: 'fadeUp 1s ease .8s both' }}>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '24px', marginTop: 'clamp(30px,4vw,50px)', display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', animation: 'fadeUp 1s ease .8s both' }}>
               <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t3,rgba(255,255,255,0.4))', fontWeight: 600 }}>01 — Curated by hand</span>
               <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t3,rgba(255,255,255,0.4))', fontWeight: 600 }}>{allPrompts.length} prompts</span>
               <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t3,rgba(255,255,255,0.4))', fontWeight: 600 }}>Bolt · v0 · Cursor · Framer</span>
@@ -538,7 +557,7 @@ function MainApp() {
             </div>
           </section>
 
-          <div ref={browseRef} style={{ padding: '56px 0 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div ref={browseRef} style={{ padding: '24px 0 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 300px', minWidth: '236px', display: 'flex', alignItems: 'center', gap: '11px', background: 'var(--s1,#111)', border: '1px solid var(--border,rgba(255,255,255,0.08))', borderRadius: '999px', padding: '11px 18px' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ width: '15px', height: '15px', flexShrink: 0, color: 'var(--t3,rgba(255,255,255,0.45))' }}><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg>
               <input value={query} onInput={onSearchInput} placeholder="Search prompts, brands, categories…" aria-label="Search prompts" style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--tstrong,#fff)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 500, letterSpacing: '0.01em', padding: 0 }} />
@@ -584,9 +603,9 @@ function MainApp() {
             </div>
           </div>
 
-          <section style={{ padding: '34px 0 72px', minHeight: '60vh' }}>
+          <section style={{ padding: '16px 0 72px', minHeight: '60vh' }}>
             {results.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', columnGap: '24px', rowGap: '44px', alignItems: 'start', animation: 'fadeGrid .4s ease both' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', columnGap: '24px', rowGap: '44px', alignItems: 'start', animation: 'fadeGrid .4s ease both' }}>
                 {results.map((item, i) => <CardComponent key={i} item={item} />)}
               </div>
             ) : (

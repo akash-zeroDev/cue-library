@@ -327,6 +327,23 @@ export default function Admin() {
             </select>
           </div>
         </div>
+        
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Static Image Thumbnail <span style={{opacity: 0.5, fontWeight: 400, textTransform: 'none'}}>— max {formatMB(imgCap)}</span></label>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button type="button" style={btnStyle} onClick={() => fileRef.current?.click()} disabled={uploading === 'img'}>{uploading === 'img' ? 'Uploading…' : 'Upload image'}</button>
+            <input ref={fileRef} type="file" accept="image/*" onChange={onPickFile} style={{ display: 'none' }} />
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>or</span>
+            <input style={{...inputStyle, flex: 1, minWidth: '200px'}} placeholder="paste image URL (https://…)" value={isDataUrl ? '' : form.thumbSrc} onChange={(e) => set({ thumbSrc: e.target.value })} disabled={isDataUrl} />
+            {form.thumbSrc && <button type="button" style={{...btnStyle, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)'}} onClick={clearThumb}>Clear</button>}
+          </div>
+          {form.thumbSrc && (
+            <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', display: 'inline-flex', flexDirection: 'column', gap: '8px' }}>
+              <img src={form.thumbSrc} alt="Thumbnail preview" style={{ height: '120px', objectFit: 'contain', borderRadius: '8px', alignSelf: 'flex-start' }} />
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{isDataUrl ? 'Uploaded (base64)' : 'Hosted URL'} · static thumbnail</span>
+            </div>
+          )}
+        </div>
 
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }}></div>
 

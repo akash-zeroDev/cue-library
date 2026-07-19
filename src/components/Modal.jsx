@@ -102,22 +102,28 @@ export default function Modal({ item, onClose, showToast }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }} onClick={onClose}>
+      <button className="modal-close-btn" style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 101, width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }} onClick={onClose} aria-label="Close" onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.9)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.7)'}>
+        <CloseIcon />
+      </button>
+
       <div
+        className="app-modal-container"
         style={{ position: 'relative', width: '90%', maxWidth: '960px', maxHeight: '90vh', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.8)' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <button style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 10, width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', transition: 'background 0.2s' }} onClick={onClose} aria-label="Close" onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}>
-          <CloseIcon />
-        </button>
 
-        <div style={{ display: 'flex', flex: 1, flexDirection: 'row', overflow: 'hidden' }}>
+        <div className="modal-content-wrapper" style={{ display: 'flex', flex: 1, flexDirection: 'row', overflow: 'hidden' }}>
           {/* Left: Video Preview Area */}
-          <div style={{ flex: 1, position: 'relative', background: '#000', borderRight: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-preview-area" style={{ flex: 1, position: 'relative', background: '#000', borderRight: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {item.hoverSrc ? (
-              <video src={item.hoverSrc} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              item.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
+                <img src={item.hoverSrc} className="modal-media" style={{ width: '100%', height: 'auto', maxHeight: '100%', objectFit: 'contain', display: 'block' }} alt="Preview" />
+              ) : (
+                <video src={item.hoverSrc} className="modal-media" autoPlay loop muted playsInline style={{ width: '100%', height: 'auto', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+              )
             ) : (
               <>
                 <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 30% 30%, hsla(${hue}, 60%, 25%, 0.4) 0%, transparent 60%), radial-gradient(circle at 70% 70%, hsla(${hue + 40}, 60%, 20%, 0.4) 0%, transparent 60%)`, animation: 'barpulse 4s ease-in-out infinite alternate' }} />
@@ -141,7 +147,7 @@ export default function Modal({ item, onClose, showToast }) {
           </div>
 
           {/* Right: Details & Prompt */}
-          <div style={{ width: '380px', display: 'flex', flexDirection: 'column', padding: '40px', background: 'rgba(255,255,255,0.02)' }}>
+          <div className="modal-details-area" style={{ width: '380px', display: 'flex', flexDirection: 'column', padding: '40px', background: 'rgba(255,255,255,0.02)' }}>
             <h2 id="modal-title" style={{ fontSize: '28px', fontWeight: 600, color: '#fff', letterSpacing: '-0.02em', marginBottom: '12px' }}>{item.title}</h2>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
