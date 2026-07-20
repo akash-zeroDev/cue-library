@@ -464,7 +464,7 @@ function MainApp() {
   };
 
   return (
-    <div ref={rootRef} style={{ background: 'var(--bg,#0A0A0A)', color: 'var(--t1,#E8E1D6)', fontFamily: "'Hanken Grotesk', system-ui, -apple-system, sans-serif", height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div ref={rootRef} style={{ background: 'var(--bg,#0A0A0A)', color: 'var(--t1,#E8E1D6)', fontFamily: "'Hanken Grotesk', system-ui, -apple-system, sans-serif", minHeight: '100vh', overflow: getIsTouch() ? 'visible' : 'hidden', position: 'relative' }}>
       
       {toastMsg && (
         <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: '#3B82F6', color: '#fff', padding: '12px 24px', borderRadius: '999px', fontSize: '14px', fontWeight: 600, zIndex: 1000, boxShadow: '0 12px 24px rgba(0,0,0,0.3)', animation: 'fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
@@ -527,8 +527,7 @@ function MainApp() {
         </div>
       )}
 
-      <div ref={contentRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', willChange: 'transform' }}>
-      <div ref={contentRef} style={{ willChange: getIsTouch() ? 'auto' : 'transform' }}>
+      <div ref={contentRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', willChange: getIsTouch() ? 'auto' : 'transform' }}>
         {activeNav === 1 ? (
           <Pricing />
         ) : activeNav === 2 ? (
