@@ -292,28 +292,24 @@ function MainApp() {
 
   const onCardEnter = (e) => {
     const card = e.currentTarget;
-    card.style.transform = 'scale(1.02)';
+    card.style.transform = 'scale(1.01)';
+    card.style.background = '#242424';
     const mock = card.querySelector('[data-mock]');
     const prev = card.querySelector('[data-preview]');
-    const thumb = card.querySelector('[data-thumb]');
     if (mock) mock.style.opacity = '0';
     if (prev) {
       if (!prev.hasAttribute('data-video')) prev.style.opacity = '1';
       const video = prev.querySelector('video');
       if (video) video.play().catch(()=>{});
     }
-    if (thumb) {
-      thumb.style.transform = 'translateY(-4px)';
-      thumb.style.boxShadow = 'inset 0 0 0 1px var(--acc-line,rgba(147,197,253,0.4)), 0 22px 60px -22px rgba(0,0,0,0.9), 0 0 0 4px var(--acc-glow,rgba(59,130,246,0.14))';
-    }
   };
   
   const onCardLeave = (e) => {
     const card = e.currentTarget;
     card.style.transform = 'scale(1)';
+    card.style.background = '#1c1c1c';
     const mock = card.querySelector('[data-mock]');
     const prev = card.querySelector('[data-preview]');
-    const thumb = card.querySelector('[data-thumb]');
     if (mock) mock.style.opacity = '1';
     if (prev) {
       if (!prev.hasAttribute('data-video')) prev.style.opacity = '0';
@@ -322,10 +318,6 @@ function MainApp() {
         video.pause();
         video.currentTime = 0;
       }
-    }
-    if (thumb) {
-      thumb.style.transform = 'translateY(0)';
-      thumb.style.boxShadow = 'inset 0 0 0 1px var(--border,rgba(255,255,255,0.08))';
     }
   };
 
@@ -397,8 +389,8 @@ function MainApp() {
     const hue = hash % 360;
     
     return (
-      <article ref={ref} onClick={() => setSelectedItem(item)} onMouseEnter={onCardEnter} onMouseLeave={onCardLeave} style={{ display: 'flex', flexDirection: 'column', gap: '16px', cursor: 'pointer', transition: 'transform .5s cubic-bezier(0.16,1,0.3,1)', transform: 'scale(1)' }}>
-        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '4 / 3', borderRadius: '24px', overflow: 'hidden', background: '#0a0a0a', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 30px -10px rgba(0,0,0,0.5)', transition: 'box-shadow .5s cubic-bezier(0.16,1,0.3,1), transform .5s cubic-bezier(0.16,1,0.3,1)' }}>
+      <article ref={ref} onClick={() => setSelectedItem(item)} onMouseEnter={onCardEnter} onMouseLeave={onCardLeave} style={{ display: 'flex', flexDirection: 'column', gap: '14px', cursor: 'pointer', transition: 'all .2s ease', transform: 'scale(1)', background: '#1c1c1c', padding: '8px 8px 16px 8px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.04)' }}>
+        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '4 / 3', borderRadius: '18px', overflow: 'hidden', background: '#0a0a0a' }}>
           {!item.hoverSrc && !item.thumbSrc && (
             <div data-mock="true" style={{ height: '100%', transition: 'opacity .45s ease', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '28px', background: `radial-gradient(circle at 20% 30%, hsla(${hue}, 60%, 25%, 0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, hsla(${hue + 40}, 60%, 20%, 0.15) 0%, transparent 60%)` }}>
               <div style={{...item.brandStyle, textShadow: '0 4px 12px rgba(0,0,0,0.5)'}}>{item.brand}</div>
@@ -451,13 +443,22 @@ function MainApp() {
             )}
           </div>
         </div>
-        <div style={{ padding: '0 8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--t1,#EDEDED)', letterSpacing: '-0.01em' }}>{item.title}</h3>
-            {item.isPremium && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '5px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.01em', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '12px', height: '12px' }}><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>Premium</span>}
-            {item.isFree && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', padding: '5px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.01em', flexShrink: 0 }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '12px', height: '12px' }}><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>Copy</span>}
+        <div style={{ padding: '0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.01em' }}>{item.title}</h3>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>{item.category || 'Hero'}</div>
           </div>
-          <div style={{ fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t3,rgba(255,255,255,0.45))', marginTop: '10px', fontWeight: 600 }}>{item.category}</div>
+          {item.isPremium ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.7)', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 500, flexShrink: 0 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '12px', height: '12px' }}><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+              Premium
+            </span>
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.7)', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 500, flexShrink: 0 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '12px', height: '12px' }}><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+              Copy
+            </span>
+          )}
         </div>
       </article>
     );
