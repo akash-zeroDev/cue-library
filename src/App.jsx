@@ -390,24 +390,24 @@ function MainApp() {
     
     return (
       <article ref={ref} onClick={() => setSelectedItem(item)} onMouseEnter={onCardEnter} onMouseLeave={onCardLeave} style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'all .2s ease', transform: 'scale(1)', background: '#1c1c1c', padding: '0 0 16px 0', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
-        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '16 / 9', overflow: 'hidden', background: '#0a0a0a', width: '100%' }}>
+        <div data-thumb="true" style={{ position: 'relative', overflow: 'hidden', background: '#0a0a0a', width: '100%', borderRadius: '18px' }}>
           {!item.hoverSrc && !item.thumbSrc && (
-            <div data-mock="true" style={{ height: '100%', transition: 'opacity .45s ease', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '28px', background: `radial-gradient(circle at 20% 30%, hsla(${hue}, 60%, 25%, 0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, hsla(${hue + 40}, 60%, 20%, 0.15) 0%, transparent 60%)` }}>
+            <div data-mock="true" style={{ aspectRatio: '16 / 9', transition: 'opacity .45s ease', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '28px', background: `radial-gradient(circle at 20% 30%, hsla(${hue}, 60%, 25%, 0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, hsla(${hue + 40}, 60%, 20%, 0.15) 0%, transparent 60%)` }}>
               <div style={{...item.brandStyle, textShadow: '0 4px 12px rgba(0,0,0,0.5)'}}>{item.brand}</div>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '40%', background: 'linear-gradient(to bottom, rgba(255,255,255,0.03), transparent)', pointerEvents: 'none' }}></div>
             </div>
           )}
           {item.thumbSrc && (
-            <div data-mock="true" style={{ height: '100%', transition: 'opacity .45s ease', background: '#000', display: 'flex' }}>
-              <img src={item.thumbSrc} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 'inherit' }} />
+            <div data-mock="true" style={{ transition: 'opacity .45s ease', background: '#000', display: 'flex' }}>
+              <img src={item.thumbSrc} alt={item.title} style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'inherit' }} />
             </div>
           )}
           {!item.thumbSrc && item.hoverSrc && (
-            <div data-video-base="true" style={{ height: '100%', background: '#000', display: 'flex' }}>
+            <div data-video-base="true" style={{ background: '#000', display: 'flex' }}>
               {item.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
-                <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 'inherit' }} alt={item.title} />
+                <img src={item.hoverSrc} style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'inherit' }} alt={item.title} />
               ) : (
-                <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 'inherit' }} />
+                <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'inherit' }} />
               )}
             </div>
           )}
