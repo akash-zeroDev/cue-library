@@ -9,6 +9,8 @@ import Admin from './pages/Admin.jsx';
 import TodaysPick from './components/TodaysPick.jsx';
 import './styles/overhaul.css';
 
+const getIsTouch = () => (typeof window !== 'undefined' && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 768));
+
 function MainApp() {
   const [activeNav, setActiveNav] = useState(0);
   const [query, setQuery] = useState('');
@@ -102,14 +104,19 @@ function MainApp() {
 
   const onWheel = useCallback((e) => {
     if (isModalOpenRef.current) return;
+    if (getIsTouch()) return;
     e.preventDefault();
     scrollState.current.target = clamp(scrollState.current.target + e.deltaY * (e.deltaMode === 1 ? 32 : 1));
   }, [clamp]);
 
   const _ty = useRef(0);
-  const onTouchStart = useCallback((e) => { _ty.current = e.touches[0].clientY; }, []);
+  const onTouchStart = useCallback((e) => { 
+    if (getIsTouch()) return;
+    _ty.current = e.touches[0].clientY; 
+  }, []);
   const onTouchMove = useCallback((e) => {
     if (isModalOpenRef.current) return;
+    if (getIsTouch()) return;
     e.preventDefault();
     const y = e.touches[0].clientY;
     scrollState.current.target = clamp(scrollState.current.target + (_ty.current - y) * 2.8);
@@ -118,6 +125,7 @@ function MainApp() {
 
   const onKey = useCallback((e) => {
     if (isModalOpenRef.current) return;
+    if (getIsTouch()) return;
     const vp = viewport();
     const map = { ArrowDown: 90, ArrowUp: -90, PageDown: vp * 0.9, PageUp: -vp * 0.9, ' ': vp * 0.9, Home: -1e9, End: 1e9 };
     if (map[e.key] === undefined) return;
@@ -151,11 +159,18 @@ function MainApp() {
     const ease = Math.max(0.03, 0.19 - 8 * 0.016);
     const st = scrollState.current;
     
-    st.cur += (st.target - st.cur) * ease;
-    if (Math.abs(st.target - st.cur) < 0.06) st.cur = st.target;
-    
-    const c = st.cur;
-    if (contentRef.current) contentRef.current.style.transform = `translate3d(0,${-c}px,0)`;
+    let c = 0;
+    if (getIsTouch()) {
+      c = window.scrollY;
+      st.cur = c;
+      st.target = c;
+      if (contentRef.current) contentRef.current.style.transform = `none`;
+    } else {
+      st.cur += (st.target - st.cur) * ease;
+      if (Math.abs(st.target - st.cur) < 0.06) st.cur = st.target;
+      c = st.cur;
+      if (contentRef.current) contentRef.current.style.transform = `translate3d(0,${-c}px,0)`;
+    }
     
     for (let i = 0; i < st.parallaxEls.length; i++) {
       const el = st.parallaxEls[i];
@@ -383,24 +398,24 @@ function MainApp() {
     
     return (
       <article ref={ref} onClick={() => setSelectedItem(item)} onMouseEnter={onCardEnter} onMouseLeave={onCardLeave} style={{ display: 'flex', flexDirection: 'column', gap: '16px', cursor: 'pointer', transition: 'transform .5s cubic-bezier(0.16,1,0.3,1)', transform: 'scale(1)' }}>
-        <div data-thumb="true" style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', background: '#0a0a0a', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 30px -10px rgba(0,0,0,0.5)', transition: 'box-shadow .5s cubic-bezier(0.16,1,0.3,1), transform .5s cubic-bezier(0.16,1,0.3,1)' }}>
+        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '4 / 3', borderRadius: '24px', overflow: 'hidden', background: '#0a0a0a', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 30px -10px rgba(0,0,0,0.5)', transition: 'box-shadow .5s cubic-bezier(0.16,1,0.3,1), transform .5s cubic-bezier(0.16,1,0.3,1)' }}>
           {!item.hoverSrc && !item.thumbSrc && (
-            <div data-mock="true" style={{ aspectRatio: '16 / 9', transition: 'opacity .45s ease', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '28px', background: `radial-gradient(circle at 20% 30%, hsla(${hue}, 60%, 25%, 0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, hsla(${hue + 40}, 60%, 20%, 0.15) 0%, transparent 60%)` }}>
+            <div data-mock="true" style={{ height: '100%', transition: 'opacity .45s ease', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '28px', background: `radial-gradient(circle at 20% 30%, hsla(${hue}, 60%, 25%, 0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, hsla(${hue + 40}, 60%, 20%, 0.15) 0%, transparent 60%)` }}>
               <div style={{...item.brandStyle, textShadow: '0 4px 12px rgba(0,0,0,0.5)'}}>{item.brand}</div>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '40%', background: 'linear-gradient(to bottom, rgba(255,255,255,0.03), transparent)', pointerEvents: 'none' }}></div>
             </div>
           )}
           {item.thumbSrc && (
-            <div data-mock="true" style={{ transition: 'opacity .45s ease', background: '#000', display: 'flex' }}>
-              <img src={item.thumbSrc} alt={item.title} style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'inherit' }} />
+            <div data-mock="true" style={{ height: '100%', transition: 'opacity .45s ease', background: '#000', display: 'flex' }}>
+              <img src={item.thumbSrc} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: 'inherit' }} />
             </div>
           )}
           {!item.thumbSrc && item.hoverSrc && (
-            <div data-video-base="true" style={{ background: '#000', display: 'flex' }}>
+            <div data-video-base="true" style={{ height: '100%', background: '#000', display: 'flex' }}>
               {item.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
-                <img src={item.hoverSrc} style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'inherit' }} alt={item.title} />
+                <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: 'inherit' }} alt={item.title} />
               ) : (
-                <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'inherit' }} />
+                <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: 'inherit' }} />
               )}
             </div>
           )}
@@ -408,9 +423,9 @@ function MainApp() {
             {item.hoverSrc ? (
               inView ? (
                 item.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
-                  <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} alt={item.title} />
+                  <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} alt={item.title} />
                 ) : (
-                  <video src={item.hoverSrc} autoPlay loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                  <video src={item.hoverSrc} autoPlay loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} />
                 )
               ) : null
             ) : (
@@ -513,6 +528,7 @@ function MainApp() {
       )}
 
       <div ref={contentRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', willChange: 'transform' }}>
+      <div ref={contentRef} style={{ willChange: getIsTouch() ? 'auto' : 'transform' }}>
         {activeNav === 1 ? (
           <Pricing />
         ) : activeNav === 2 ? (
