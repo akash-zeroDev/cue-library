@@ -389,8 +389,8 @@ function MainApp() {
     const hue = hash % 360;
     
     return (
-      <article ref={ref} onClick={() => setSelectedItem(item)} onMouseEnter={onCardEnter} onMouseLeave={onCardLeave} style={{ display: 'flex', flexDirection: 'column', gap: '14px', cursor: 'pointer', transition: 'all .2s ease', transform: 'scale(1)', background: '#1c1c1c', padding: '8px 8px 16px 8px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.04)' }}>
-        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '4 / 3', borderRadius: '18px', overflow: 'hidden', background: '#0a0a0a' }}>
+      <article ref={ref} onClick={() => setSelectedItem(item)} onMouseEnter={onCardEnter} onMouseLeave={onCardLeave} style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'all .2s ease', transform: 'scale(1)', background: '#1c1c1c', padding: '0 0 16px 0', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+        <div data-thumb="true" style={{ position: 'relative', aspectRatio: '16 / 9', overflow: 'hidden', background: '#0a0a0a', width: '100%' }}>
           {!item.hoverSrc && !item.thumbSrc && (
             <div data-mock="true" style={{ height: '100%', transition: 'opacity .45s ease', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '28px', background: `radial-gradient(circle at 20% 30%, hsla(${hue}, 60%, 25%, 0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, hsla(${hue + 40}, 60%, 20%, 0.15) 0%, transparent 60%)` }}>
               <div style={{...item.brandStyle, textShadow: '0 4px 12px rgba(0,0,0,0.5)'}}>{item.brand}</div>
@@ -443,7 +443,7 @@ function MainApp() {
             )}
           </div>
         </div>
-        <div style={{ padding: '0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.01em' }}>{item.title}</h3>
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>{item.category || 'Hero'}</div>
