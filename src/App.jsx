@@ -399,15 +399,15 @@ function MainApp() {
           )}
           {item.thumbSrc && (
             <div data-mock="true" style={{ height: '100%', transition: 'opacity .45s ease', background: '#000', display: 'flex' }}>
-              <img src={item.thumbSrc} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: 'inherit' }} />
+              <img src={item.thumbSrc} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 'inherit' }} />
             </div>
           )}
           {!item.thumbSrc && item.hoverSrc && (
             <div data-video-base="true" style={{ height: '100%', background: '#000', display: 'flex' }}>
               {item.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
-                <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: 'inherit' }} alt={item.title} />
+                <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 'inherit' }} alt={item.title} />
               ) : (
-                <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', borderRadius: 'inherit' }} />
+                <video src={item.hoverSrc} loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 'inherit' }} />
               )}
             </div>
           )}
@@ -415,9 +415,9 @@ function MainApp() {
             {item.hoverSrc ? (
               inView ? (
                 item.hoverSrc.match(/\.(jpeg|jpg|gif|png|webp|svg|heic)$/i) ? (
-                  <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} alt={item.title} />
+                  <img src={item.hoverSrc} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} alt={item.title} />
                 ) : (
-                  <video src={item.hoverSrc} autoPlay loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} />
+                  <video src={item.hoverSrc} autoPlay loop muted playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
                 )
               ) : null
             ) : (
